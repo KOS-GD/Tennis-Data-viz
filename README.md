@@ -53,7 +53,9 @@ Le script vide `web/data/` puis y écrit tous les fichiers ci-dessous. On garde 
 
 `charting_rally.csv` a une ligne par match, longueur d'échange (`row`) et serveur (`server` = `w`, `l` ou `all`), avec les stats des deux joueurs en colonnes `w_` et `l_`.
 
-Les champs des Grands Chelems ne sont pas tous renseignés chaque année (vitesse 75 % des points, zone du service 42 %, distance parcourue 47 %) : une case vide veut dire « non mesuré ».
+Seule exception à la règle 5 : `charting_serve_influence.csv` est fourni par la source en pourcentages (part des points gagnés au service selon la longueur de l'échange), gardés en proportions entre 0 et 1.
+
+Des colonnes en partie vides sont normales : la source ne renseigne pas tout. Dans l'archive ATP, `seed` et `entry` ne sont remplis que pour les têtes de série et les entrées particulières (invité, qualifié...). Dans `charting_points`, `second` est vide quand la 1re balle est bonne. Dans `slam_matches`, tour, court et pays ne sont donnés qu'en 2011. Les champs des Grands Chelems ne sont pas tous renseignés chaque année (vitesse 75 % des points, zone du service 42 %, distance parcourue 47 %) : une case vide veut dire « non mesuré ».
 
 Les deux fichiers point par point sont compressés (`.csv.gz`, environ 14 Mo chacun au lieu de 55 et 85). Le navigateur les lit avec `csvGz()` de `web/main.js`.
 

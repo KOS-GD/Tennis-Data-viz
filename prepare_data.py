@@ -204,7 +204,13 @@ def prepare_charting() -> dict:
         s["match_id"] = s["match_id"].map(ids)
         s = s.rename(columns=snake)
         s = s[key + [c for c in s.columns if c not in key]].sort_values(key)
-        out[f"charting_{snake(name)}"] = to_int(s, [c for c in s.columns if c not in key])
+        values = [c for c in s.columns if c not in key]
+        # Seul ServeInfluence donne des pourcentages (« 68.8% ») et non des comptes : on les garde en
+        # proportion entre 0 et 1, faute de pouvoir retrouver les comptes.
+        pct = [c for c in values if s[c].astype(str).str.endswith("%").any()]
+        for c in pct:
+            s[c] = (pd.to_numeric(s[c].astype(str).str.rstrip("%"), errors="coerce") / 100).round(3)
+        out[f"charting_{snake(name)}"] = to_int(s, [c for c in values if c not in pct])
     return out
 
 
