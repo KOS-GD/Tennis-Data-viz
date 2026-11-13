@@ -10,7 +10,7 @@ python -m venv .venv
 source .venv/bin/activate          # Windows : .venv\Scripts\activate
 pip install -r requirements.txt
 
-# 2. Données brutes (non versionnées, ~quelques centaines de Mo)
+# 2. Données brutes (non versionnées, ~300 Mo)
 bash scripts/download_data.sh       # Windows : lancer depuis Git Bash
 
 # 3. Calcul des indicateurs -> web/data/*.json
@@ -21,7 +21,7 @@ cd web && python -m http.server 8000
 # puis ouvrir http://localhost:8000
 ```
 
-Sans l'étape 3, le site s'affiche avec des **données fictives** (`web/data/goat_sample.json`) : l'équipe site peut travailler sans attendre les vraies données.
+Les JSON calculés sur les vraies données sont déjà dans `web/data/` : le site marche directement. Relancez l'étape 3 après toute modification des calculs.
 
 Tests des calculs (sur de petites données inventées) : `pytest`.
 
@@ -63,14 +63,14 @@ Une valeur inconnue vaut `null` (jamais 0). Si vous changez ce format, mettez à
 
 ## Ajouter une source de données
 
-1. Ajouter une ligne `fetch <dossier> <url>` dans `scripts/download_data.sh` (des exemples WTA, point par point et Match Charting Project y sont déjà, commentés).
+1. Ajouter une ligne `fetch <dossier> <url>` dans `scripts/download_data.sh`. La WTA et le point par point des Grands Chelems sont dans la même archive (commande en commentaire dans le script).
 2. Écrire sa fonction de lecture dans `src/load.py`.
 3. Noter la source et sa licence ci-dessous et dans `report/donnees.md`.
 
 ## Prochaines étapes
 
-- [ ] Télécharger les données et dérouler `notebooks/01_exploration.ipynb` ; reporter les chiffres dans `report/donnees.md`
-- [ ] Valider les codes de `tourney_level` et de `round` avec `matches_data_dictionary.txt`
+- [x] Télécharger les données et dérouler `notebooks/01_exploration.ipynb` ; chiffres dans `report/donnees.md`
+- [ ] Corriger les semaines au n°1 pour le gel des classements de 2020 (Djokovic : 450 au lieu de 428)
 - [ ] Arrêter la liste des joueurs (critère dans `scripts/build_data.py`, `MIN_SLAMS`)
 - [ ] Calibrer l'Elo (seuil de longévité, majoration des Grands Chelems) et le comparer à un classement Elo publié
 - [ ] Vue 2 : course aux titres par âge
@@ -82,5 +82,5 @@ Une valeur inconnue vaut `null` (jamais 0). Si vous changez ce format, mettez à
 
 ## Sources et licences
 
-- **Données ATP** : Jeff Sackmann / Tennis Abstract, [github.com/JeffSackmann/tennis_atp](https://github.com/JeffSackmann/tennis_atp), licence [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). Les données ne sont pas redistribuées dans ce dépôt ; les fichiers dérivés de `web/data/` sont publiés sous la même licence.
+- **Données ATP** : Jeff Sackmann / Tennis Abstract, licence [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). Le dépôt d'origine (github.com/JeffSackmann/tennis_atp) a été retiré en 2026 ; nous utilisons sa copie d'archive [github.com/Aneeshers/tennis-sackmann-archive](https://github.com/Aneeshers/tennis-sackmann-archive), données jusqu'en mai 2026. Les données ne sont pas redistribuées dans ce dépôt ; les fichiers dérivés de `web/data/` sont publiés sous la même licence.
 - **D3.js** v7.9.0, chargé depuis cdnjs.

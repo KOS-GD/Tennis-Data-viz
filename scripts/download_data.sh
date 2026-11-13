@@ -10,22 +10,29 @@ cd "$(dirname "$0")/.."
 mkdir -p data/raw
 
 fetch () {
-  local name="$1" url="$2"
+  # fetch <dossier> <url> [sous-dossier à garder]
+  local name="$1" url="$2" subdir="${3:-}"
   if [ -d "data/raw/$name/.git" ]; then
     echo "→ $name : mise à jour"
     git -C "data/raw/$name" pull --ff-only
+  elif [ -n "$subdir" ] && git clone --depth 1 --filter=blob:none --sparse "$url" "data/raw/$name"; then
+    echo "→ $name : téléchargement de $subdir/ seulement"
+    git -C "data/raw/$name" sparse-checkout set "$subdir"
   else
-    echo "→ $name : téléchargement"
+    echo "→ $name : téléchargement complet"
+    rm -rf "data/raw/$name"
     git clone --depth 1 "$url" "data/raw/$name"
   fi
 }
 
-# Source principale : matchs, classements et joueurs ATP (Jeff Sackmann, CC BY-NC-SA 4.0)
-fetch tennis_atp https://github.com/JeffSackmann/tennis_atp.git
+# Source principale : matchs, classements et joueurs ATP de Jeff Sackmann (CC BY-NC-SA 4.0).
+# Le dépôt d'origine (github.com/JeffSackmann/tennis_atp) n'est plus en ligne depuis 2026 :
+# on utilise sa copie d'archive, qui garde les mêmes fichiers dans atp/ (et wta/, slam_pointbypoint/).
+fetch tennis-sackmann-archive https://github.com/Aneeshers/tennis-sackmann-archive.git atp
 
-# Sources optionnelles, à décommenter si besoin :
-# fetch tennis_wta https://github.com/JeffSackmann/tennis_wta.git
-# fetch tennis_slam_pointbypoint https://github.com/JeffSackmann/tennis_slam_pointbypoint.git
+# Pour ajouter la WTA ou le point par point des Grands Chelems (même archive) :
+#   git -C data/raw/tennis-sackmann-archive sparse-checkout add wta slam_pointbypoint
+# Autre source encore en ligne chez l'auteur :
 # fetch tennis_MatchChartingProject https://github.com/JeffSackmann/tennis_MatchChartingProject.git
 
 echo "Terminé. Fichiers dans data/raw/"
