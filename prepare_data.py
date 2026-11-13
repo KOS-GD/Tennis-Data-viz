@@ -9,6 +9,7 @@ Sortie : web/data/, trois sources, une même règle (voir README, « Règles com
   charting_<stat>.csv          Match Charting : les 16 tableaux de stats, une ligne par match, joueur et ligne du tableau
   slam_matches.csv             point par point des Grands Chelems : un match par ligne
   slam_points.csv              point par point des Grands Chelems : un point par ligne (vitesse, échange, distance...)
+  charting_player_info.csv     Match Charting : identifiant ATP, pays et classement de chaque joueur noté
 
 Lancer depuis la racine du dépôt :  python prepare_data.py
 """
@@ -305,6 +306,41 @@ def prepare_slam() -> dict:
 
 
 # ---------------------------------------------------------------------------
+# 4. Tables ajoutées pour une vue (n'en modifient aucune autre)
+# ---------------------------------------------------------------------------
+
+def prepare_charting_player_info(matches: pd.DataFrame) -> pd.DataFrame:
+    """charting_player_info.csv : pour chaque match noté et chaque joueur (`player` = w / l),
+    son identifiant ATP, son pays et son classement ATP à la date du match.
+
+    Le Match Charting ne donne que les noms : on les retrouve dans le fichier des joueurs de l'archive
+    ATP (« prénom nom »). Pour un nom porté par plusieurs joueurs, on garde le plus souvent classé.
+    Le classement est le dernier publié dans les 60 jours avant le match (fichiers atp_rankings_*).
+    """
+    players = pd.read_csv(SACKMANN / "atp_players.csv", encoding_errors="replace", low_memory=False)
+    ranks = pd.concat((pd.read_csv(f) for f in sorted(SACKMANN.glob("atp_rankings_*.csv"))),
+                      ignore_index=True).drop_duplicates(["ranking_date", "player"])
+    players["name"] = (players["name_first"].fillna("") + " " + players["name_last"].fillna("")).str.strip()
+    players["n_ranks"] = players["player_id"].map(ranks["player"].value_counts()).fillna(0)
+    players = players.sort_values("n_ranks", ascending=False).drop_duplicates("name").set_index("name")
+    ranks["date"] = pd.to_datetime(ranks["ranking_date"].astype(str), format="%Y%m%d")
+    ranks = ranks.sort_values("date")
+
+    rows = []
+    for p in "wl":
+        d = pd.DataFrame({"match_id": matches["match_id"], "player": p,
+                          "date": pd.to_datetime(matches["date"]),
+                          "atp_id": matches[f"{p}_name"].map(players["player_id"]),
+                          "ioc": matches[f"{p}_name"].map(players["ioc"])})
+        known = d.dropna(subset=["atp_id"]).astype({"atp_id": int}).sort_values("date")
+        r = pd.merge_asof(known, ranks[["date", "player", "rank"]].rename(columns={"player": "atp_id"}),
+                          on="date", by="atp_id", direction="backward", tolerance=pd.Timedelta(days=60))
+        rows.append(d.merge(r[["match_id", "rank"]], on="match_id", how="left"))
+    out = pd.concat(rows, ignore_index=True).drop(columns="date")
+    return to_int(out, ["atp_id", "rank"]).sort_values(["match_id", "player"])
+
+
+# ---------------------------------------------------------------------------
 
 GZIP = {"charting_points", "slam_points"}   # fichiers point par point, compressés (voir README)
 
@@ -320,6 +356,10 @@ if __name__ == "__main__":
     for old in list(OUT.glob("*.csv")) + list(OUT.glob("*.csv.gz")):   # repart de zéro
         old.unlink()
     save(prepare_atp_matches(), "atp_matches")
-    for build in (prepare_charting, prepare_slam):
-        for name, df in build().items():
-            save(df, name)
+    charting = prepare_charting()
+    for name, df in charting.items():
+        save(df, name)
+    for name, df in prepare_slam().items():
+        save(df, name)
+    # Tables ajoutées (section 4)
+    save(prepare_charting_player_info(charting["charting_matches"]), "charting_player_info")

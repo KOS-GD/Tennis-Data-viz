@@ -49,6 +49,7 @@ Le script vide `web/data/` puis y écrit tous les fichiers ci-dessous. On garde 
 | `charting_points.csv.gz` | un point noté | score avant le point, serveur, codes bruts de la 1re et de la 2e balle (`first`, `second`, voir l'onglet *Instructions* de `MatchChart 0.3.2.xlsm`), gagnant du point |
 | `charting_<tableau>.csv` | un match × joueur × ligne du tableau | les 16 tableaux de stats du projet, complets : `overview` (la colonne `row` donne le set ou `Total`), `serve_basics`, `serve_direction`, `serve_influence`, `sv_break_total`, `sv_break_split`, `key_points_serve`, `key_points_return`, `return_outcomes`, `return_depth`, `rally`, `shot_types`, `shot_direction`, `shot_dir_outcomes`, `net_points`, `sn_v` |
 | `slam_matches.csv` | un match de Grand Chelem suivi point par point, 2011-2024 | tournoi, surface, tour, court, noms et pays |
+| `charting_player_info.csv` | un match noté × joueur (`player` = `w` / `l`) | identifiant ATP, pays et classement ATP à la date du match, retrouvés par le nom dans l'archive ATP (98 % des joueurs) |
 | `slam_points.csv.gz` | un point | set, jeu, score, serveur, 1re ou 2e balle, vitesse (km/h), longueur d'échange, zone et profondeur du service, profondeur du retour, type du coup gagnant, et pour chaque joueur : ace, double faute, coup gagnant, faute directe ou provoquée, montée au filet, balle de break, distance parcourue |
 
 `charting_rally.csv` a une ligne par match, longueur d'échange (`row`) et serveur (`server` = `w`, `l` ou `all`), avec les stats des deux joueurs en colonnes `w_` et `l_`.
@@ -66,7 +67,9 @@ cd web
 python -m http.server 8000
 ```
 
-puis ouvrir http://localhost:8000.
+puis ouvrir http://localhost:8000. Toutes les vues sont des onglets de cette page.
+
+**Ajouter une vue** : dans `web/index.html`, une `<section class="view" id="view-xxx" data-title="Titre de l'onglet" data-init="initXxx">` avec le HTML de la vue, puis `web/css/xxx.css` (règles préfixées par `#view-xxx`) et `web/js/xxx.js`, qui définit `initXxx()`, appelée à la première ouverture de l'onglet. Pour éviter les collisions entre vues, préfixer les `id` (par exemple `sv-` pour les services) et garder les variables du script dans une fonction anonyme, comme `js/services.js`.
 
 ## Sources et licence
 
