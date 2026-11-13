@@ -58,7 +58,7 @@ Seule exception à la règle 5 : `charting_serve_influence.csv` est fourni par l
 
 Des colonnes en partie vides sont normales : la source ne renseigne pas tout. Dans l'archive ATP, `seed` et `entry` ne sont remplis que pour les têtes de série et les entrées particulières (invité, qualifié...). Dans `charting_points`, `second` est vide quand la 1re balle est bonne. Dans `slam_matches`, tour, court et pays ne sont donnés qu'en 2011. Les champs des Grands Chelems ne sont pas tous renseignés chaque année (vitesse 75 % des points, zone du service 42 %, distance parcourue 47 %) : une case vide veut dire « non mesuré ».
 
-Les deux fichiers point par point sont compressés (`.csv.gz`, environ 14 Mo chacun au lieu de 55 et 85). Le navigateur les lit avec `csvGz()` de `web/main.js`.
+Les deux fichiers point par point sont compressés (`.csv.gz`, environ 14 Mo chacun au lieu de 55 et 85). pandas les lit directement ; dans le navigateur, `fetch` puis `DecompressionStream("gzip")`.
 
 ## 3. Lancer le site
 
@@ -69,7 +69,7 @@ python -m http.server 8000
 
 puis ouvrir http://localhost:8000. Toutes les vues sont des onglets de cette page.
 
-**Ajouter une vue** : dans `web/index.html`, une `<section class="view" id="view-xxx" data-title="Titre de l'onglet" data-init="initXxx">` avec le HTML de la vue, puis `web/css/xxx.css` (règles préfixées par `#view-xxx`) et `web/js/xxx.js`, qui définit `initXxx()`, appelée à la première ouverture de l'onglet. Pour éviter les collisions entre vues, préfixer les `id` (par exemple `sv-` pour les services) et garder les variables du script dans une fonction anonyme, comme `js/services.js`.
+**Ajouter une vue** : dans `web/index.html`, un bouton `<button data-tab="xxx">` dans `#tabs` et une `<section class="tab" id="xxx">` ; le code dans `web/js/xxx.js` avec une fonction `initXxx()`, appelée dans `createViz()` (`web/main.js`) ; le style dans `web/css/xxx.css`. Préfixer les `id`, classes et variables globales de la vue (la vue des services utilise `sv`) pour ne pas gêner les autres vues.
 
 ## Sources et licence
 

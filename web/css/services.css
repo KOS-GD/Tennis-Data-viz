@@ -1,42 +1,13 @@
-/* Onglet « Services » : toutes les règles sont limitées à #view-services. */
-
-#view-services .sv-picker { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
-#view-services #sv-player-input {
-  width: 260px; padding: 8px 12px;
-  border: 1px solid var(--line); border-radius: 999px;
-  background: var(--input); color: var(--text); font: inherit; font-size: 14px;
+#sv-player {
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: white;
+  font: inherit;
 }
-#view-services .sv-featured { display: flex; flex-wrap: wrap; gap: 6px; }
-#view-services .sv-featured button {
-  padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px;
-  background: var(--panel); color: var(--text); font: inherit; font-size: 13px; cursor: pointer;
-  transition: background .2s, color .2s, border-color .2s;
-}
-#view-services .sv-featured button:hover { border-color: var(--muted); }
-#view-services .sv-featured button.on { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
 
-#view-services .sv-insight { min-height: 1.6em; margin: 6px 0 18px; font-size: 17px; }
-#view-services .sv-insight b { color: var(--accent); }
+#sv-courts svg { display: block; width: 100%; height: auto; margin-top: 16px; }
 
-#view-services #sv-courts svg { display: block; width: 100%; height: auto; }
-#view-services #sv-legend svg { display: block; margin-top: 6px; }
-#view-services .note { color: var(--muted); font-size: 13px; max-width: 920px; }
-
-#view-services .court-title { font-size: 19px; font-weight: 650; fill: var(--text); }
-#view-services .court-n { font-size: 12px; fill: var(--muted); }
-#view-services .zone-name { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; fill: rgba(255,255,255,.62); pointer-events: none; }
-#view-services .zone-pct { font-size: 21px; font-weight: 600; fill: var(--text); font-variant-numeric: tabular-nums; }
-#view-services .zone-delta { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
-#view-services .strip-rule { stroke: var(--line); stroke-width: 1; }
-#view-services .strip-box { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; fill: var(--muted); }
-#view-services .zone-hit { fill: transparent; cursor: crosshair; }
-#view-services .zone-hit:hover { fill: rgba(255,255,255,.08); }
-#view-services .legend-text { font-size: 12px; fill: var(--muted); }
-
-#view-services .tooltip {
-  position: fixed; z-index: 10; pointer-events: none;
-  background: rgba(255,255,255,.97); border: 1px solid var(--line); border-radius: 8px;
-  box-shadow: 0 6px 18px rgba(0,0,0,.12); color: var(--text);
-  padding: 8px 10px; font-size: 13px; max-width: 280px;
-}
-#view-services .tooltip b { color: var(--accent); }
+.sv-title { font-size: 16px; font-weight: 600; fill: var(--text); }
+.sv-pct { font-size: 14px; fill: var(--text); }
+.sv-small { font-size: 11px; fill: var(--muted); }

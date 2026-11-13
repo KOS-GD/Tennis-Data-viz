@@ -2,53 +2,33 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ce qui fait gagner au tennis</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="css/services.css">
-</head>
-<body>
-  <header>
-    <p class="kicker">Projet de visualisation de données</p>
-    <h1>Ce qui fait gagner au tennis</h1>
-    <p class="lede">Ce qui sépare le vainqueur du perdant, et si cela change selon la surface.</p>
-  </header>
-
-  <nav id="tabs" aria-label="Vues"></nav>
-
-  <!-- Une section par vue : voir js/tabs.js pour en ajouter une. -->
-
-  <section class="view" id="view-donnees" data-title="Les données">
-    <h2>Les données chargées</h2>
-    <div id="summary-content">Chargement…</div>
-  </section>
-
-  <section class="view" id="view-services" data-title="Services" data-init="initServices">
-    <h2>Où servent-ils ?</h2>
-    <p class="lede">Chaque balle est un service bon du joueur, servi depuis l'autre côté du filet. Sur chaque surface, la couleur au sol dit s'il sert plus (rouge) ou moins (bleu) dans cette zone que la moyenne du circuit.</p>
-
-    <div class="sv-picker">
-      <input id="sv-player-input" list="sv-player-list" placeholder="Chercher un joueur…" autocomplete="off">
-      <datalist id="sv-player-list"></datalist>
-      <div class="sv-featured" id="sv-featured"></div>
-    </div>
-
-    <p class="sv-insight" id="sv-insight"></p>
-    <div id="sv-courts"></div>
-    <div id="sv-legend"></div>
-
-    <p class="note">Lecture : on regarde la moitié de court du relanceur, filet en haut ; le serveur est de l'autre côté du filet. Chaque carré de service est découpé en trois zones notées par le Match Charting Project : extérieur, corps, centre (le « T »). Le pourcentage est la part des services bons du carré qui tombent dans la zone, l'écart est mesuré en points par rapport à la moyenne de tous les joueurs sur la même surface. Survolez une zone pour l'effectif et l'intervalle de confiance à 95 %.</p>
-    <p class="note">Chaque balle vaut la même part des services du joueur sur la surface (160 balles par court) : leur nombre dans une zone suit les données, leur position exacte dans la zone est tirée au hasard (le projet ne note pas le point d'impact). Balle claire : 1re balle ; balle sombre : 2e balle.</p>
-    <div id="sv-tooltip" class="tooltip" hidden></div>
-  </section>
-
-  <footer>
-    Données : Jeff Sackmann / Tennis Abstract (archive ATP, Match Charting Project, point par point des Grands Chelems), licence CC BY-NC-SA 4.0. D3.js v7.
-  </footer>
-
   <script src="d3.v7.min.js"></script>
-  <script src="js/tabs.js"></script>
   <script src="main.js"></script>
   <script src="js/services.js"></script>
+</head>
+<body onload="createViz();">
+  <header>
+    <h1>Ce qui fait gagner au tennis</h1>
+    <nav id="tabs">
+      <button data-tab="donnees">Les données</button>
+      <button data-tab="services">Services</button>
+    </nav>
+  </header>
+
+  <section class="tab" id="donnees">
+    <div id="summary"></div>
+  </section>
+
+  <section class="tab" id="services">
+    <h2>Où servent-ils ?</h2>
+    <p class="hint">Rouge : le joueur sert plus que la moyenne du circuit dans cette zone. Bleu : moins.</p>
+    <select id="sv-player"></select>
+    <div id="sv-courts"></div>
+  </section>
+
+  <footer>Données : Jeff Sackmann / Tennis Abstract, licence CC BY-NC-SA 4.0.</footer>
 </body>
 </html>

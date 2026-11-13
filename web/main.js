@@ -1,35 +1,41 @@
-// Chargement des données produites par prepare_data.py.
-// Pour l'instant, la page affiche seulement un résumé : les vues viendront ici.
+// Point d'entrée du site : onglets et onglet « Les données ».
+// Chaque vue a son propre fichier dans js/ et une fonction d'initialisation appelée ici.
 
-// Lit un fichier .csv.gz (fichiers point par point) : le navigateur le décompresse lui-même.
-async function csvGz(url) {
-  const res = await fetch(url);
-  const text = await new Response(res.body.pipeThrough(new DecompressionStream("gzip"))).text();
-  return d3.csvParse(text, d3.autoType);
+function createViz() {
+  initTabs();
+  initSummary();
+  initServices();   // js/services.js
 }
 
-Promise.all([
-  d3.csv("data/atp_matches.csv", d3.autoType),
-  d3.csv("data/charting_matches.csv", d3.autoType),
-  d3.csv("data/slam_matches.csv", d3.autoType),
-]).then(([atp, charting, slam]) => {
-  const fmt = d3.format(",");
-  const span = (rows, year) => d3.extent(rows, year).join(" – ");
-  const bySurface = rows => d3.rollups(rows, v => v.length, d => d.surface)
-    .sort((a, b) => b[1] - a[1])
-    .map(([s, n]) => [`  dont ${s}`, fmt(n), ""]);
-  const rows = [
-    ["Matchs ATP (archive Sackmann)", fmt(atp.length), span(atp, d => d.date.getFullYear())],
-    ...bySurface(atp),
-    ["Matchs notés (Match Charting)", fmt(charting.length), span(charting, d => d.date.getFullYear())],
-    ...bySurface(charting),
-    ["Matchs de Grand Chelem point par point", fmt(slam.length), span(slam, d => d.year)],
-    ...bySurface(slam),
-  ];
+// Onglets : un bouton par section, on affiche celle qui est choisie.
+function initTabs() {
+  d3.selectAll("#tabs button").on("click", function () {
+    showTab(this.dataset.tab);
+  });
+  showTab("services");
+}
 
-  const table = d3.select("#summary-content").html("").append("table");
-  table.selectAll("tr").data(rows).join("tr")
-    .selectAll("td").data(d => d).join("td")
-    .attr("class", (d, i) => (i === 1 ? "num" : null))
-    .text(d => d);
-});
+function showTab(name) {
+  d3.selectAll("#tabs button").classed("on", function () { return this.dataset.tab === name; });
+  d3.selectAll(".tab").classed("on", function () { return this.id === name; });
+}
+
+// Onglet « Les données » : nombre de matchs de chaque source.
+function initSummary() {
+  Promise.all([
+    d3.csv("data/atp_matches.csv"),
+    d3.csv("data/charting_matches.csv"),
+    d3.csv("data/slam_matches.csv"),
+  ]).then(function (data) {
+    const rows = [
+      ["Matchs ATP (1991-2026)", data[0].length],
+      ["Matchs notés coup par coup (Match Charting)", data[1].length],
+      ["Matchs de Grand Chelem point par point (2011-2024)", data[2].length],
+    ];
+    d3.select("#summary").append("table")
+      .selectAll("tr").data(rows).enter().append("tr")
+      .selectAll("td").data(d => d).enter().append("td")
+      .attr("class", (d, i) => (i === 1 ? "num" : null))
+      .text(d => (typeof d === "number" ? d3.format(",")(d) : d));
+  });
+}
