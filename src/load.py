@@ -11,6 +11,7 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 RAW_ATP = ROOT / "data" / "raw" / "tennis-sackmann-archive" / "atp"
+RAW_CHARTING = ROOT / "data" / "raw" / "tennis_MatchChartingProject"
 
 # Codes de la colonne tourney_level (à confirmer dans matches_data_dictionary.txt)
 LEVELS = {
@@ -88,3 +89,21 @@ def load_rankings(raw_dir: Path = RAW_ATP) -> pd.DataFrame:
     r = r.rename(columns={"ranking": "rank", "player_id": "player", "ranking_points": "points"})
     r["ranking_date"] = _to_date(r["ranking_date"])
     return r.drop_duplicates(["ranking_date", "player"]).sort_values(["ranking_date", "rank"])
+
+
+def load_charting(table: str = "matches", raw_dir: Path = RAW_CHARTING) -> pd.DataFrame:
+    """Match Charting Project, circuit masculin.
+
+    `table` : "matches" (liste des matchs décrits), "points" (tous les points,
+    coup par coup, les trois fichiers réunis) ou le nom d'une table de stats,
+    par exemple "ShotDirection", "ServeDirection", "ReturnDepth", "NetPoints".
+    Le format des coups est expliqué dans le README du dépôt source.
+    """
+    raw_dir = _check_dir(raw_dir)
+    read = lambda f: pd.read_csv(f, low_memory=False, encoding="utf-8", encoding_errors="replace")
+    if table == "matches":
+        return read(raw_dir / "charting-m-matches.csv")
+    if table == "points":
+        files = sorted(raw_dir.glob("charting-m-points-*.csv"))
+        return pd.concat((read(f) for f in files), ignore_index=True)
+    return read(raw_dir / f"charting-m-stats-{table}.csv")

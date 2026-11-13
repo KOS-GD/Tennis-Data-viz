@@ -10,7 +10,7 @@ python -m venv .venv
 source .venv/bin/activate          # Windows : .venv\Scripts\activate
 pip install -r requirements.txt
 
-# 2. Données brutes (non versionnées, ~300 Mo)
+# 2. Données brutes (non versionnées, ~300 Mo + ~530 Mo pour le Match Charting Project)
 bash scripts/download_data.sh       # Windows : lancer depuis Git Bash
 
 # 3. Calcul des indicateurs -> web/data/*.json
@@ -83,4 +83,5 @@ Une valeur inconnue vaut `null` (jamais 0). Si vous changez ce format, mettez à
 ## Sources et licences
 
 - **Données ATP** : Jeff Sackmann / Tennis Abstract, licence [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). Le dépôt d'origine (github.com/JeffSackmann/tennis_atp) a été retiré en 2026 ; nous utilisons sa copie d'archive [github.com/Aneeshers/tennis-sackmann-archive](https://github.com/Aneeshers/tennis-sackmann-archive), données jusqu'en mai 2026. Les données ne sont pas redistribuées dans ce dépôt ; les fichiers dérivés de `web/data/` sont publiés sous la même licence.
+- **Match Charting Project** : Jeff Sackmann et les bénévoles du projet, [github.com/JeffSackmann/tennis_MatchChartingProject](https://github.com/JeffSackmann/tennis_MatchChartingProject), licence CC BY-NC-SA 4.0. Chargement : `load_charting()` dans `src/load.py`.
 - **D3.js** v7.9.0, chargé depuis cdnjs.

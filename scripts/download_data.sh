@@ -32,7 +32,8 @@ fetch tennis-sackmann-archive https://github.com/Aneeshers/tennis-sackmann-archi
 
 # Pour ajouter la WTA ou le point par point des Grands Chelems (même archive) :
 #   git -C data/raw/tennis-sackmann-archive sparse-checkout add wta slam_pointbypoint
-# Autre source encore en ligne chez l'auteur :
-# fetch tennis_MatchChartingProject https://github.com/JeffSackmann/tennis_MatchChartingProject.git
+# Match Charting Project (Jeff Sackmann, toujours en ligne, ~530 Mo) : matchs décrits coup par coup
+# (direction et profondeur des coups, par zones), ~7 500 matchs masculins.
+fetch tennis_MatchChartingProject https://github.com/JeffSackmann/tennis_MatchChartingProject.git
 
 echo "Terminé. Fichiers dans data/raw/"
