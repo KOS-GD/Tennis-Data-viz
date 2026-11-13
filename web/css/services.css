@@ -1,84 +1,40 @@
-#view-services .layout { display: grid; grid-template-columns: 270px 1fr; gap: 28px; align-items: start; }
-@media (max-width: 900px) { #view-services .layout { grid-template-columns: 1fr; } }
+/* Onglet « Services » : toutes les règles sont limitées à #view-services. */
 
-#view-services aside {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 6px 16px 16px;
-  position: sticky; top: 16px;
-}
-#view-services aside section { padding: 12px 0; border-bottom: 1px solid var(--line); }
-#view-services aside section:last-child { border-bottom: 0; }
-#view-services aside h2 { margin: 0 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
-#view-services .hint { margin: 6px 0 0; font-size: 12px; color: var(--muted); }
-
-#view-services .seg { display: flex; flex-wrap: wrap; gap: 4px; }
-#view-services .seg button, #view-services #sv-reset {
-  flex: 1 1 auto;
-  padding: 5px 9px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--text);
-  font: inherit; font-size: 13px;
-  cursor: pointer;
-  transition: background .2s, border-color .2s, color .2s;
-}
-#view-services .seg button:hover, #view-services #sv-reset:hover { border-color: var(--muted); }
-#view-services .seg button.on { background: var(--accent); border-color: var(--accent); color: var(--accent-text); font-weight: 600; }
-#view-services #sv-reset { width: 100%; margin-top: 10px; }
-
-#view-services input[type=text], #view-services input:not([type]), #view-services select {
-  width: 100%; padding: 7px 10px;
-  border: 1px solid var(--line); border-radius: 8px;
+#view-services .sv-picker { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+#view-services #sv-player-input {
+  width: 260px; padding: 8px 12px;
+  border: 1px solid var(--line); border-radius: 999px;
   background: var(--input); color: var(--text); font: inherit; font-size: 14px;
 }
-#view-services .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
-#view-services .chip {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 3px 6px 3px 10px; border-radius: 999px;
-  background: var(--chip); font-size: 13px;
+#view-services .sv-featured { display: flex; flex-wrap: wrap; gap: 6px; }
+#view-services .sv-featured button {
+  padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px;
+  background: var(--panel); color: var(--text); font: inherit; font-size: 13px; cursor: pointer;
+  transition: background .2s, color .2s, border-color .2s;
 }
-#view-services .chip button { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 15px; line-height: 1; }
-#view-services .chip button:hover { color: var(--text); }
+#view-services .sv-featured button:hover { border-color: var(--muted); }
+#view-services .sv-featured button.on { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
 
-#view-services .years { position: relative; height: 26px; }
-#view-services .years input { position: absolute; width: 100%; top: 4px; margin: 0; pointer-events: none; background: none; -webkit-appearance: none; appearance: none; }
-#view-services .years input::-webkit-slider-thumb { pointer-events: all; -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); cursor: pointer; }
-#view-services .years input::-moz-range-thumb { pointer-events: all; width: 16px; height: 16px; border: 0; border-radius: 50%; background: var(--accent); cursor: pointer; }
-#view-services .years input::-webkit-slider-runnable-track { height: 4px; background: var(--line); border-radius: 2px; }
-#view-services .years input::-moz-range-track { height: 4px; background: var(--line); border-radius: 2px; }
-#view-services .years input::-webkit-slider-thumb { margin-top: -6px; }
-#view-services .check { display: flex; gap: 8px; align-items: center; font-size: 14px; cursor: pointer; }
+#view-services .sv-insight { min-height: 1.5em; margin: 4px 0 10px; font-size: 16px; }
+#view-services .sv-insight b { color: var(--accent); }
 
-#view-services .stage { min-width: 0; }
-/* Court vu depuis derrière le relanceur, avec une perspective de retransmission télévisée */
-#view-services #sv-court { perspective: 1700px; perspective-origin: 50% 0%; margin-top: -230px; }
-#view-services #sv-court svg {
-  display: block; width: 100%; max-width: 780px; height: auto; margin: 0 auto;
-  transform: rotateX(40deg); transform-origin: 50% 100%;
-  filter: drop-shadow(0 24px 34px rgba(30,35,40,.28));
-}
-#view-services #sv-legend { margin-top: 14px; }
-#view-services #sv-legend svg { display: block; }
-#view-services #sv-summary { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 8px; }
-#view-services .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; min-width: 120px; }
-#view-services .stat b { display: block; font-size: 20px; font-weight: 650; font-variant-numeric: tabular-nums; }
-#view-services .stat span { font-size: 12px; color: var(--muted); }
-#view-services .stat.warn b { color: #c4501b; }
-#view-services .note { color: var(--muted); font-size: 13px; max-width: 900px; }
+#view-services #sv-courts svg { display: block; width: 100%; height: auto; }
+#view-services #sv-legend svg { display: block; margin-top: 6px; }
+#view-services .note { color: var(--muted); font-size: 13px; max-width: 920px; }
 
-#view-services .zone-label { font-weight: 700; paint-order: stroke; stroke: rgba(0,0,0,.55); stroke-width: 3px; fill: #fff; pointer-events: none; }
-#view-services .zone-sub { font-size: 8px; letter-spacing: .08em; text-transform: uppercase; fill: rgba(255,255,255,.75); pointer-events: none; }
-#view-services .box-title { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; fill: rgba(255,255,255,.8); }
+#view-services .court-title { font-size: 17px; font-weight: 650; fill: var(--text); }
+#view-services .court-n { font-size: 12px; fill: var(--muted); }
+#view-services .zone-pct { font-size: 13px; font-weight: 700; fill: #fff; paint-order: stroke; stroke: rgba(0,0,0,.45); stroke-width: 3px; pointer-events: none; }
+#view-services .zone-delta { font-size: 11px; font-weight: 650; paint-order: stroke; stroke: rgba(255,255,255,.85); stroke-width: 3px; pointer-events: none; }
+#view-services .zone-name { font-size: 9px; letter-spacing: .08em; text-transform: uppercase; fill: rgba(255,255,255,.9); pointer-events: none; }
 #view-services .zone-hit { fill: transparent; cursor: crosshair; }
-#view-services .zone-hit:hover { fill: rgba(255,255,255,.07); }
+#view-services .zone-hit:hover { stroke: #fff; stroke-width: 2; }
+#view-services .legend-text { font-size: 11px; fill: var(--muted); }
 
 #view-services .tooltip {
   position: fixed; z-index: 10; pointer-events: none;
-  background: rgba(255,255,255,.97); border: 1px solid var(--line); box-shadow: 0 6px 18px rgba(0,0,0,.12); color: var(--text); border-radius: 8px;
-  padding: 8px 10px; font-size: 13px; max-width: 260px;
+  background: rgba(255,255,255,.97); border: 1px solid var(--line); border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.12); color: var(--text);
+  padding: 8px 10px; font-size: 13px; max-width: 280px;
 }
 #view-services .tooltip b { color: var(--accent); }
-

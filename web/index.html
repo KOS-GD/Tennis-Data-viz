@@ -24,63 +24,21 @@
   </section>
 
   <section class="view" id="view-services" data-title="Services" data-init="initServices">
-    <h2>Où tombent les services</h2>
-    <p class="lede">Chaque service noté par le Match Charting Project tombe dans l'une des trois zones d'un carré de service : extérieur, corps ou centre (le « T »). La carte de chaleur répartit ces services dans leur zone pour montrer d'un coup d'œil où un joueur, un groupe de joueurs ou une surface envoie la balle.</p>
+    <h2>Où servent-ils ?</h2>
+    <p class="lede">Chaque point est un service bon, lancé depuis l'autre côté du filet. Sur les trois surfaces, la couleur d'une zone dit si le joueur y sert plus (rouge) ou moins (bleu) que la moyenne du circuit.</p>
 
-    <div class="layout">
-      <aside>
-        <section>
-          <h2>Surface</h2>
-          <div class="seg" id="sv-surface"></div>
-        </section>
-        <section>
-          <h2>Balle</h2>
-          <div class="seg" id="sv-serve"></div>
-        </section>
-        <section>
-          <h2>Joueurs</h2>
-          <input id="sv-player-input" list="sv-player-list" placeholder="Taper un nom…" autocomplete="off">
-          <datalist id="sv-player-list"></datalist>
-          <div class="chips" id="sv-players"></div>
-          <p class="hint">Plusieurs joueurs possibles : leurs services sont additionnés.</p>
-        </section>
-        <section>
-          <h2>Pays</h2>
-          <select id="sv-country"></select>
-        </section>
-        <section>
-          <h2>Classement au moment du match</h2>
-          <div class="seg" id="sv-rank"></div>
-        </section>
-        <section>
-          <h2>Main</h2>
-          <div class="seg" id="sv-hand"></div>
-        </section>
-        <section>
-          <h2>Résultat du match</h2>
-          <div class="seg" id="sv-result"></div>
-        </section>
-        <section>
-          <h2>Années</h2>
-          <div class="years">
-            <input type="range" id="sv-year-min"><input type="range" id="sv-year-max">
-          </div>
-          <p class="hint" id="sv-year-label"></p>
-        </section>
-        <section>
-          <label class="check"><input type="checkbox" id="sv-faults" checked> Montrer les fautes</label>
-          <button id="sv-reset">Tout réinitialiser</button>
-        </section>
-      </aside>
-
-      <div class="stage">
-        <div id="sv-court"></div>
-        <div id="sv-legend"></div>
-        <div id="sv-summary"></div>
-        <p class="note">Lecture : on regarde le court depuis derrière le relanceur ; le serveur est au fond. Le carré « égalité » (à droite) reçoit les services joués au début de chaque jeu et après un nombre pair de points ; le carré « avantage » (à gauche) reçoit les autres. Le pourcentage écrit dans chaque zone est la part des services bons du carré qui y tombent ; survolez une zone pour l'effectif et son intervalle de confiance à 95 %.</p>
-        <p class="note">Le Match Charting ne note que la zone (extérieur, corps, centre), pas le point d'impact : à l'intérieur d'une zone, la position des services est tirée au hasard, plus souvent près de la ligne de service et des lignes, pour donner l'allure d'une vraie carte d'impacts. Seule la répartition entre zones vient des données. Les points blancs sont les fautes : filet, trop long, trop large.</p>
-      </div>
+    <div class="sv-picker">
+      <input id="sv-player-input" list="sv-player-list" placeholder="Chercher un joueur…" autocomplete="off">
+      <datalist id="sv-player-list"></datalist>
+      <div class="sv-featured" id="sv-featured"></div>
     </div>
+
+    <p class="sv-insight" id="sv-insight"></p>
+    <div id="sv-courts"></div>
+    <div id="sv-legend"></div>
+
+    <p class="note">Lecture : on regarde la moitié de court du relanceur, filet en haut ; le serveur est de l'autre côté du filet. Chaque carré de service est découpé en trois zones notées par le Match Charting Project : extérieur, corps, centre (le « T »). Le pourcentage est la part des services bons du carré qui tombent dans la zone, l'écart est mesuré en points par rapport à la moyenne de tous les joueurs sur la même surface. Survolez une zone pour l'effectif et l'intervalle de confiance à 95 %.</p>
+    <p class="note">Les points représentent chacun la même part des services du joueur sur la surface (160 points par court) : leur nombre dans une zone suit les données, leur position exacte dans la zone est tirée au hasard (le projet ne note pas le point d'impact).</p>
     <div id="sv-tooltip" class="tooltip" hidden></div>
   </section>
 
