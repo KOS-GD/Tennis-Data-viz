@@ -1,0 +1,147 @@
+{
+ "_note": "DONNÉES FICTIVES pour développer le site. Le vrai fichier est web/data/goat.json, produit par scripts/build_data.py, au même format.",
+ "criteria": [
+  {
+   "key": "slams",
+   "label": "Grands Chelems"
+  },
+  {
+   "key": "titles",
+   "label": "Titres (total)"
+  },
+  {
+   "key": "weeks_no1",
+   "label": "Semaines au n°1"
+  },
+  {
+   "key": "peak_elo",
+   "label": "Pic Elo"
+  },
+  {
+   "key": "longevity",
+   "label": "Longévité (années au top Elo)"
+  },
+  {
+   "key": "versatility",
+   "label": "Polyvalence (surfaces)"
+  },
+  {
+   "key": "h2h",
+   "label": "Bilan face aux autres grands"
+  }
+ ],
+ "players": [
+  {
+   "id": 1,
+   "name": "Joueur A",
+   "ioc": "FRA",
+   "values": {
+    "slams": 22,
+    "titles": 92,
+    "weeks_no1": 209,
+    "peak_elo": 2440,
+    "longevity": 12,
+    "versatility": 0.79,
+    "h2h": 0.58
+   }
+  },
+  {
+   "id": 2,
+   "name": "Joueur B",
+   "ioc": "ESP",
+   "values": {
+    "slams": 18,
+    "titles": 80,
+    "weeks_no1": 150,
+    "peak_elo": 2390,
+    "longevity": 14,
+    "versatility": 0.74,
+    "h2h": 0.55
+   }
+  },
+  {
+   "id": 3,
+   "name": "Joueur C",
+   "ioc": "SRB",
+   "values": {
+    "slams": 24,
+    "titles": 98,
+    "weeks_no1": 420,
+    "peak_elo": 2470,
+    "longevity": 15,
+    "versatility": 0.81,
+    "h2h": 0.61
+   }
+  },
+  {
+   "id": 4,
+   "name": "Joueur D",
+   "ioc": "USA",
+   "values": {
+    "slams": 14,
+    "titles": 64,
+    "weeks_no1": 286,
+    "peak_elo": 2330,
+    "longevity": 9,
+    "versatility": 0.62,
+    "h2h": 0.52
+   }
+  },
+  {
+   "id": 5,
+   "name": "Joueur E",
+   "ioc": "SWE",
+   "values": {
+    "slams": 11,
+    "titles": 66,
+    "weeks_no1": 109,
+    "peak_elo": 2360,
+    "longevity": 7,
+    "versatility": 0.7,
+    "h2h": null
+   }
+  },
+  {
+   "id": 6,
+   "name": "Joueur F",
+   "ioc": "AUS",
+   "values": {
+    "slams": 4,
+    "titles": 40,
+    "weeks_no1": 0,
+    "peak_elo": 2250,
+    "longevity": 5,
+    "versatility": 0.68,
+    "h2h": 0.38
+   }
+  },
+  {
+   "id": 7,
+   "name": "Joueur G",
+   "ioc": "GBR",
+   "values": {
+    "slams": 3,
+    "titles": 46,
+    "weeks_no1": 41,
+    "peak_elo": 2300,
+    "longevity": 4,
+    "versatility": 0.73,
+    "h2h": 0.41
+   }
+  },
+  {
+   "id": 8,
+   "name": "Joueur H",
+   "ioc": "ITA",
+   "values": {
+    "slams": 6,
+    "titles": 30,
+    "weeks_no1": 70,
+    "peak_elo": 2420,
+    "longevity": 3,
+    "versatility": 0.76,
+    "h2h": 0.47
+   }
+  }
+ ]
+}

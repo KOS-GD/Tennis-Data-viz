@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Le meilleur de l'histoire ?</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="page-header">
+    <h1>Qui est le meilleur joueur de tennis de l'histoire ?</h1>
+    <p class="lede">Ça dépend de ce que vous comptez. Réglez l'importance de chaque critère et regardez le classement changer.</p>
+    <p id="sample-banner" class="banner" hidden>Données fictives : lancez <code>python -m scripts.build_data</code> pour charger les vraies.</p>
+  </header>
+
+  <main>
+    <section id="goat" class="view" aria-labelledby="goat-title">
+      <h2 id="goat-title">Classement réglable</h2>
+
+      <div class="controls">
+        <div class="presets" role="group" aria-label="Préréglages">
+          <button type="button" data-preset="equal" class="is-active">Tous les critères</button>
+          <button type="button" data-preset="slams">Tout pour les Chelems</button>
+          <button type="button" data-preset="peak">Tout pour le pic</button>
+          <button type="button" data-preset="longevity">Tout pour la longévité</button>
+        </div>
+        <div id="sliders" class="sliders"></div>
+      </div>
+
+      <div id="legend" class="legend" aria-hidden="true"></div>
+      <div id="goat-chart" class="chart"></div>
+      <p class="note">Chaque critère est converti en rang (0 = dernier, 1 = premier du groupe) avant d'être pondéré.
+        Un critère non disponible pour un joueur ne le pénalise pas : il est retiré de son calcul.</p>
+    </section>
+
+    <!-- Vues à venir : course aux titres par âge, règnes Elo, fiche joueur, confrontations directes -->
+  </main>
+
+  <div id="tooltip" class="tooltip" role="status" hidden></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+  <script src="js/goat.js"></script>
+</body>
+</html>
