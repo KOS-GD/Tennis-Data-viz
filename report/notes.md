@@ -18,3 +18,7 @@ Une ligne par décision, avec sa raison, au fil de l'eau.
 | 13/11/2026 | Filtre surface sur la vue filet | Les années 1980-1990 comptent plus de gazon : sans filtre, on mélange effet de l'époque et effet de la surface |
 | 13/11/2026 | Violons à la même largeur maximale, n écrit sous chaque décennie, pas de violon sous 30 matchs | On compare des formes ; les effectifs sont très inégaux (110 à 6 600) |
 | 13/11/2026 | Une couleur fixe par joueur, 3 joueurs au plus mis en avant, les autres en gris | La couleur suit le joueur et ne change pas avec la sélection ; au-delà de 3 couleurs dans un nuage, elles se confondent pour les daltoniens |
+| 13/11/2026 | ATP : disqualifications et matchs interrompus retirés, ainsi que 8 matchs aux statistiques impossibles | Pas de vainqueur sportif, ou erreur de saisie |
+| 13/11/2026 | ATP : moquette (`Carpet`) gardée dans le fichier | Surface réelle jusqu'en 2009 ; la vue peut la filtrer |
+| 13/11/2026 | Match Charting : nouveau fichier `charting_matches.csv`, vainqueur déduit du dernier point, matchs incomplets retirés (environ 1 %) | Le fichier des matchs ne donne pas le vainqueur, or c'est le cœur de la question |
+| 13/11/2026 | Fichier `slam_pointbypoint` non utilisé pour l'instant | Le Match Charting couvre déjà le style de jeu, avec plus de détail |
