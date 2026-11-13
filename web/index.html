@@ -7,11 +7,13 @@
   <link rel="stylesheet" href="css/services.css">
   <link rel="stylesheet" href="css/fiche.css">
   <link rel="stylesheet" href="css/joueur.css">
+  <link rel="stylesheet" href="css/evolution.css">
   <script src="d3.v7.min.js"></script>
   <script src="main.js"></script>
   <script src="js/services.js"></script>
   <script src="js/fiche.js"></script>
   <script src="js/joueur.js"></script>
+  <script src="js/evolution.js"></script>
 </head>
 <body onload="createViz();">
   <header>
@@ -21,6 +23,7 @@
       <button data-tab="services">Services</button>
       <button data-tab="view-joueur">Fiche joueur</button>
       <button data-tab="view-fiche">Comparer les joueurs</button>
+      <button data-tab="view-evolution">Évolution du style de jeu</button>
     </nav>
   </header>
 
@@ -99,6 +102,19 @@
       </div>
     </div>
     <div id="fj-tooltip" class="tooltip" hidden></div>
+  </section>
+
+  <section class="tab" id="view-evolution">
+    <h2>Le jeu au filet, décennie par décennie</h2>
+    <div class="bar">
+      <label>Surface</label>
+      <div class="ev-seg" id="ev-surface"></div>
+      <label>Joueurs (3 au plus)</label>
+      <div id="ev-players"></div>
+    </div>
+    <div id="ev-chart"></div>
+    <p class="ev-legend">Un point = un joueur dans un match noté. Violon : forme de la distribution (tracé à partir de 30 matchs) ; boîte : médiane et quartiles. Matchs de moins de 40 points écartés.</p>
+    <div id="ev-tooltip" hidden></div>
   </section>
 
   <footer>Données : Jeff Sackmann / Tennis Abstract, licence CC BY-NC-SA 4.0. Simple messieurs, matchs joués jusqu'au bout.</footer>

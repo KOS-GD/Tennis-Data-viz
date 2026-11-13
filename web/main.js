@@ -7,6 +7,7 @@ function createViz() {
   initServices();   // js/services.js
   initFiche();      // js/fiche.js
   initJoueur();     // js/joueur.js
+  initEvolution();  // js/evolution.js
 }
 
 // Onglets : un bouton par section, on affiche celle qui est choisie.

@@ -1,0 +1,46 @@
+/* Onglet « Évolution du style de jeu » */
+#view-evolution #ev-chart svg { display: block; width: 100%; height: auto; }
+
+/* Filtre surface et joueurs */
+#view-evolution .ev-seg { display: inline-flex; border: 1px solid var(--line); border-radius: 2px; }
+#view-evolution .ev-seg button {
+  padding: 4px 10px; border: none; border-right: 1px solid var(--line);
+  background: var(--bg); color: var(--muted); cursor: pointer;
+}
+#view-evolution .ev-seg button:last-child { border-right: none; }
+#view-evolution .ev-seg button.on { background: var(--chip); color: var(--text); font-weight: bold; }
+
+#view-evolution #ev-players { display: flex; flex-wrap: wrap; gap: 6px; }
+#view-evolution #ev-players button {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border: 1px solid var(--line); border-radius: 999px;
+  background: var(--bg); color: var(--muted); cursor: pointer;
+}
+#view-evolution #ev-players button.on { color: var(--text); border-color: var(--muted); }
+#view-evolution .ev-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+
+/* Graphique */
+#view-evolution .ev-grid line { stroke: var(--line); stroke-opacity: .6; }
+#view-evolution .ev-grid .domain { display: none; }
+#view-evolution .ev-axis text { fill: var(--muted); font-size: 11px; }
+#view-evolution .ev-axis .domain, #view-evolution .ev-axis line { stroke: var(--line); }
+#view-evolution .ev-xaxis .domain { display: none; }
+#view-evolution .ev-xaxis text { font-size: 12px; fill: var(--text); }
+#view-evolution .ev-label { fill: var(--muted); font-size: 12px; }
+#view-evolution .ev-count { fill: var(--muted); font-size: 11px; }
+
+#view-evolution .ev-violin { fill: var(--line); fill-opacity: .55; }
+#view-evolution .ev-point { fill: var(--muted); fill-opacity: .25; }
+#view-evolution .ev-box rect { fill: var(--bg); stroke: var(--muted); stroke-width: 1.5; }
+#view-evolution .ev-whisker { stroke: var(--muted); stroke-width: 1.5; }
+#view-evolution .ev-median { stroke: var(--text); stroke-width: 2.5; }
+#view-evolution .ev-chosen { stroke: var(--bg); stroke-width: 1; }
+
+/* Légende et infobulle */
+#view-evolution .ev-legend { margin: 6px 0 0; color: var(--muted); font-size: 12px; }
+#view-evolution #ev-tooltip {
+  position: fixed; z-index: 10; pointer-events: none; max-width: 260px;
+  padding: 7px 9px; border: 1px solid var(--line); border-radius: 2px;
+  background: var(--panel); font-size: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+}
+#view-evolution .ev-muted { color: var(--muted); }
