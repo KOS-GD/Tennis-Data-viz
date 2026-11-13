@@ -1,15 +1,14 @@
-#sv-player {
-  padding: 7px 10px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--input);
-  color: var(--text);
-  font: inherit;
-  font-size: 14px;
-}
+#sv-courts svg { display: block; width: 100%; height: auto; }
 
-#sv-courts svg { display: block; width: 100%; height: auto; margin-top: 16px; }
-
-.sv-title { font-size: 16px; font-weight: 600; fill: var(--text); }
+.sv-title { font-size: 14px; font-weight: bold; fill: var(--text); }
 .sv-pct { font-size: 14px; fill: var(--text); }
 .sv-small { font-size: 11px; fill: var(--muted); }
+
+/* Légende : une balle, puis l'échelle de couleur */
+.sv-key { margin-right: 24px; color: var(--muted); font-size: 13px; }
+.sv-ball { display: inline-block; width: 7px; height: 7px; margin-right: 8px; border-radius: 50%; background: #222; opacity: .75; }
+#sv-legend svg { display: block; }
+#sv-legend g { font-family: inherit; }
+#sv-legend text { font-size: 11px; fill: var(--muted); }
+#sv-legend .domain { display: none; }
+#sv-legend .tick line { stroke: var(--muted); }

@@ -1,65 +1,53 @@
-/* Fiche joueur : mise en page reprise de la vue Services (panneau à gauche, graphique à droite). */
-#view-fiche .layout { display: grid; grid-template-columns: 270px 1fr; gap: 28px; align-items: start; }
-@media (max-width: 900px) { #view-fiche .layout { grid-template-columns: 1fr; } }
- 
-#view-fiche aside {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 6px 16px 16px;
-  position: sticky; top: 16px;
-}
-#view-fiche aside section { padding: 12px 0; border-bottom: 1px solid var(--line); }
-#view-fiche aside section:last-child { border-bottom: 0; }
-#view-fiche aside h2 { margin: 0 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
-#view-fiche .hint { margin: 6px 0 0; font-size: 12px; color: var(--muted); }
+/* Fiche joueur : contrôles en haut, graphique à gauche, légende à droite. */
+#view-fiche .layout { display: flex; align-items: flex-start; gap: 48px; }
+@media (max-width: 900px) { #view-fiche .layout { flex-direction: column; gap: 16px; } }
+
+/* Le graphique (640 x 500) est limité en largeur pour que l'onglet tienne sur un écran */
+#view-fiche #fj-chart { flex: 1 1 auto; min-width: 0; max-width: min(760px, calc((100vh - 235px) * 1.28)); }
+#view-fiche #fj-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+#view-fiche #fj-player-input { width: 200px; }
 #view-fiche .hint:empty { display: none; }
- 
-#view-fiche input:not([type]) {
-  width: 100%; padding: 7px 10px;
-  border: 1px solid var(--line); border-radius: 8px;
-  background: var(--input); color: var(--text); font: inherit; font-size: 14px;
-}
-#view-fiche .seg { display: flex; flex-wrap: wrap; gap: 4px; }
+
+/* Bascule radar / barres : deux boutons accolés */
+#view-fiche .seg { display: flex; }
 #view-fiche .seg button {
-  flex: 1 1 auto; padding: 5px 9px;
-  border: 1px solid var(--line); border-radius: 999px;
-  background: transparent; color: var(--text);
-  font: inherit; font-size: 13px; cursor: pointer;
-  transition: background .2s, border-color .2s, color .2s;
+  padding: 4px 12px;
+  border: 1px solid var(--muted);
+  background: var(--panel);
+  cursor: pointer;
 }
-#view-fiche .seg button:hover { border-color: var(--muted); }
-#view-fiche .seg button.on { background: var(--accent); border-color: var(--accent); color: var(--accent-text); font-weight: 600; }
- 
-#view-fiche .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
-#view-fiche .chip {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 3px 6px 3px 10px; border-radius: 999px;
-  background: var(--chip); font-size: 13px;
-}
-#view-fiche .chip .symbol { font-size: 12px; }
-#view-fiche .chip button { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 15px; line-height: 1; }
+#view-fiche .seg button + button { border-left: 0; }
+#view-fiche .seg button.on { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+
+/* Légende : les joueurs choisis (couleur + forme), puis les repères du graphique */
+#view-fiche .legend { flex: 0 0 290px; padding-top: 36px; }
+#view-fiche .legend p { margin: 0 0 8px; padding-left: 32px; text-indent: -32px; color: var(--muted); font-size: 13px; }
+#view-fiche .chips { margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+#view-fiche .chips:empty { display: none; }
+#view-fiche .chip { display: flex; align-items: center; padding: 3px 0; }
+#view-fiche .chip .symbol { width: 32px; font-size: 13px; }
+#view-fiche .chip .name { flex: 1; }
+#view-fiche .chip button { padding: 0 4px; border: 0; background: none; color: var(--muted); font-size: 16px; line-height: 1; cursor: pointer; }
 #view-fiche .chip button:hover { color: var(--text); }
- 
-#view-fiche .key-median, #view-fiche .key-ci { display: inline-block; width: 22px; vertical-align: middle; margin-right: 4px; }
+
+#view-fiche .legend p > span:first-child { display: inline-block; width: 22px; margin-right: 10px; vertical-align: middle; text-indent: 0; }
 #view-fiche .key-median { border-top: 1.5px dashed var(--muted); }
+#view-fiche .key-axis { border-top: 1px solid var(--muted); }
+#view-fiche .legend p > span.key-low:first-child { width: 10px; height: 10px; margin: 0 16px 0 6px; border: 2px solid var(--muted); border-radius: 50%; }
 #view-fiche .key-ci { height: 8px; border: 2px solid var(--muted); border-top: 0; border-bottom: 0; position: relative; }
 #view-fiche .key-ci::after { content: ""; position: absolute; left: 0; right: 0; top: 3px; border-top: 2px solid var(--muted); }
- 
-#view-fiche .stage { min-width: 0; }
-#view-fiche #fj-chart svg { display: block; width: 100%; max-width: 760px; height: auto; overflow: visible; }
-#view-fiche .note { color: var(--muted); font-size: 13px; max-width: 900px; }
- 
+
 /* Grilles : discrètes, pour laisser la place aux données */
 #view-fiche .ring, #view-fiche .spoke, #view-fiche .track { fill: none; stroke: var(--line); stroke-width: 1; }
 #view-fiche .median { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 4 3; }
 #view-fiche .label { fill: var(--text); font-size: 13px; }
 #view-fiche .range, #view-fiche .tick text { fill: var(--muted); font-size: 11px; }
-#view-fiche .tick line { stroke: var(--line); }
-#view-fiche .median-tick line { stroke: var(--muted); stroke-dasharray: 2 2; }
+#view-fiche .tick line { stroke: var(--muted); }
+#view-fiche .median-tick line { stroke-dasharray: 2 2; }
 #view-fiche .axis-label, #view-fiche .row .hit { cursor: help; }
 #view-fiche .row .hit { fill: transparent; }
- 
+
 /* Marques des joueurs (la couleur vient du script) */
 #view-fiche .poly { fill-opacity: .08; stroke-width: 2; stroke-linejoin: round; }
 #view-fiche .poly.partial { fill: none; }
@@ -67,18 +55,18 @@
 #view-fiche .mark:not(.low) .symbol { stroke: var(--panel); }
 #view-fiche .mark .symbol { stroke-width: 2; }
 #view-fiche .mark:hover .symbol { stroke: var(--text); }
-#view-fiche .ci-line, #view-fiche .cap { stroke-width: 2; stroke-linecap: round; }
+#view-fiche .ci-line, #view-fiche .cap { stroke-width: 2; }
 
- 
+/* Infobulle */
 #view-fiche .tooltip {
   position: fixed; z-index: 10; pointer-events: none;
-  background: rgba(255,255,255,.97); border: 1px solid var(--line); box-shadow: 0 6px 18px rgba(0,0,0,.12); color: var(--text); border-radius: 8px;
-  padding: 8px 10px; font-size: 13px; max-width: 300px;
+  max-width: 300px; padding: 6px 8px;
+  background: var(--panel); border: 1px solid var(--muted);
+  font-size: 13px;
 }
-#view-fiche .tooltip b { color: var(--accent); }
-#view-fiche .tooltip .big { font-size: 20px; font-weight: 650; font-variant-numeric: tabular-nums; }
+#view-fiche .tooltip .big { font-size: 18px; font-weight: bold; font-variant-numeric: tabular-nums; }
 #view-fiche .tooltip .faint { color: var(--muted); }
 #view-fiche .tooltip .spark { display: block; margin-top: 6px; }
 #view-fiche .tooltip .spark-line { fill: none; stroke-width: 2; }
 #view-fiche .tooltip .spark text { fill: var(--muted); font-size: 10px; }
-#view-fiche .tooltip .spark path.domain, #view-fiche .tooltip .spark line { stroke: var(--line); }
+#view-fiche .tooltip .spark path.domain, #view-fiche .tooltip .spark line { stroke: var(--muted); }

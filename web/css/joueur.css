@@ -1,0 +1,93 @@
+/* Fiche d'un joueur : identité, chiffres et adversaires à gauche, graphique à droite. */
+#view-joueur .layout { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 40px; align-items: start; }
+@media (max-width: 900px) { #view-joueur .layout { grid-template-columns: 1fr; gap: 20px; } }
+
+#view-joueur #jo-input { width: 220px; }
+#view-joueur .hint:empty { display: none; }
+
+/* Bascule radar / barres : deux boutons accolés (comme l'onglet « Comparer ») */
+#view-joueur .seg { display: flex; }
+#view-joueur .seg button {
+  padding: 4px 12px;
+  border: 1px solid var(--muted);
+  background: var(--panel);
+  cursor: pointer;
+}
+#view-joueur .seg button + button { border-left: 0; }
+#view-joueur .seg button.on { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+
+/* Identité : emplacement de la photo, nom, pays · main · taille, carrière */
+#view-joueur .identity { display: flex; gap: 16px; align-items: center; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+#view-joueur .photo {
+  flex: 0 0 88px; height: 110px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px dashed var(--muted);
+  background: var(--chip);
+  color: var(--muted); font-size: 22px; letter-spacing: 1px;
+}
+#view-joueur .who .name { font-size: 20px; font-weight: bold; line-height: 1.2; }
+#view-joueur .who p { margin: 4px 0 0; color: var(--muted); }
+
+/* Chiffres de carrière : grille de deux colonnes */
+#view-joueur h3 { margin: 16px 0 8px; font-size: 13px; font-weight: normal; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+#view-joueur #jo-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+#view-joueur .stat.wide { grid-column: 1 / -1; }
+#view-joueur .stat .label, #view-joueur .rival .label { color: var(--muted); font-size: 12px; }
+#view-joueur .stat .value { font-size: 20px; font-weight: bold; font-variant-numeric: tabular-nums; }
+#view-joueur .stat .sub { color: var(--muted); font-size: 12px; }
+
+/* Adversaires : libellé, nom cliquable, bilan */
+#view-joueur .rival { padding: 6px 0; border-bottom: 1px solid var(--line); }
+#view-joueur .rival:last-child { border-bottom: 0; }
+#view-joueur .rival .label[title] { cursor: help; }
+#view-joueur .rival .name {
+  display: block; padding: 0; border: 0; background: none;
+  font-weight: bold; text-align: left; cursor: pointer;
+}
+#view-joueur .rival .name:hover:not(:disabled) { text-decoration: underline; }
+#view-joueur .rival .name:disabled { color: var(--text); cursor: default; }
+#view-joueur .rival .record { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+/* Graphique (640 x 500), limité pour que l'onglet tienne sur un écran, légende dessous */
+#view-joueur #jo-chart { max-width: min(700px, calc((100vh - 250px) * 1.28)); }
+#view-joueur #jo-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+#view-joueur .legend { display: flex; flex-wrap: wrap; gap: 4px 20px; margin-top: 8px; }
+#view-joueur .legend p { margin: 0; color: var(--muted); font-size: 12px; }
+#view-joueur .legend p > span:first-child { display: inline-block; width: 22px; margin-right: 6px; vertical-align: middle; }
+#view-joueur .key-median { border-top: 1.5px dashed var(--muted); }
+#view-joueur .legend p > span.key-low:first-child { width: 10px; height: 10px; margin: 0 6px 0 6px; border: 2px solid #2a78d6; border-radius: 50%; }
+#view-joueur .key-ci { height: 8px; border: 2px solid #2a78d6; border-top: 0; border-bottom: 0; position: relative; }
+#view-joueur .key-ci::after { content: ""; position: absolute; left: 0; right: 0; top: 3px; border-top: 2px solid #2a78d6; }
+
+/* Grilles discrètes */
+#view-joueur .ring, #view-joueur .spoke, #view-joueur .track { fill: none; stroke: var(--line); stroke-width: 1; }
+#view-joueur .median { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 4 3; }
+#view-joueur .label { fill: var(--text); font-size: 13px; }
+#view-joueur .range, #view-joueur .tick text { fill: var(--muted); font-size: 11px; }
+#view-joueur .tick line { stroke: var(--muted); }
+#view-joueur .median-tick line { stroke-dasharray: 2 2; }
+#view-joueur .axis-label, #view-joueur .row .hit { cursor: help; }
+#view-joueur .row .hit { fill: transparent; }
+
+/* Marques du joueur (la couleur vient du script) */
+#view-joueur .poly { fill-opacity: .1; stroke-width: 2; stroke-linejoin: round; }
+#view-joueur .poly.partial { fill: none; }
+#view-joueur .mark .hit { fill: transparent; }
+#view-joueur .mark:not(.low) .symbol { stroke: var(--panel); }
+#view-joueur .mark .symbol { stroke-width: 2; }
+#view-joueur .mark:hover .symbol { stroke: var(--text); }
+#view-joueur .ci-line, #view-joueur .cap { stroke-width: 2; }
+
+/* Infobulle */
+#view-joueur .tooltip {
+  position: fixed; z-index: 10; pointer-events: none;
+  max-width: 300px; padding: 6px 8px;
+  background: var(--panel); border: 1px solid var(--muted);
+  font-size: 13px;
+}
+#view-joueur .tooltip .big { font-size: 18px; font-weight: bold; font-variant-numeric: tabular-nums; }
+#view-joueur .tooltip .faint { color: var(--muted); }
+#view-joueur .tooltip .spark { display: block; margin-top: 6px; }
+#view-joueur .tooltip .spark-line { fill: none; stroke-width: 2; }
+#view-joueur .tooltip .spark text { fill: var(--muted); font-size: 10px; }
+#view-joueur .tooltip .spark path.domain, #view-joueur .tooltip .spark line { stroke: var(--muted); }

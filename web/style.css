@@ -1,14 +1,14 @@
+/* Thème commun. Interface en noir, blanc et gris : la couleur est réservée aux données. */
 :root {
-  --bg: #f7f6f2;
-  --text: #1c1f24;
-  --muted: #6b6f75;
-  --line: #e0ddd5;
-  --accent: #1f6f4a;
-  /* utilisées par la fiche joueur */
+  --bg: #ffffff;
   --panel: #ffffff;
+  --text: #222222;
+  --muted: #6e6e6e;
+  --line: #d6d6d6;
+  --accent: #222222;
   --accent-text: #ffffff;
-  --input: #fbfaf7;
-  --chip: #ebf2ee;
+  --input: #ffffff;
+  --chip: #f2f2f2;
 }
 
 * { box-sizing: border-box; }
@@ -16,33 +16,57 @@
 body {
   margin: 0 auto;
   max-width: 1200px;
-  padding: 24px;
+  padding: 0 24px 24px;
   background: var(--bg);
   color: var(--text);
-  font: 15px/1.5 system-ui, sans-serif;
+  font: 14px/1.4 "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
-header { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-h1 { margin: 0 0 24px; font-size: 26px; font-weight: 600; }
-h2 { margin: 0 0 4px; font-size: 20px; font-weight: 600; }
-.hint, .lede { margin: 0 0 16px; color: var(--muted); }
+/* En-tête : titre à gauche, onglets à droite, posés sur un filet */
+header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding-top: 18px;
+  border-bottom: 1px solid var(--text);
+}
+h1 { margin: 0 0 9px; font-size: 20px; }
+h2 { margin: 0 0 10px; font-size: 16px; }
 
 #tabs button {
-  padding: 6px 14px;
+  padding: 8px 14px 6px;
   border: none;
-  border-bottom: 2px solid transparent;
+  border-bottom: 3px solid transparent;
   background: none;
   color: var(--muted);
   font: inherit;
   cursor: pointer;
 }
+#tabs button:hover { color: var(--text); }
 #tabs button.on { color: var(--text); border-bottom-color: var(--accent); }
 
 .tab { display: none; }
 .tab.on { display: block; }
 
-table { border-collapse: collapse; }
-td { padding: 6px 24px 6px 0; border-bottom: 1px solid var(--line); }
-td.num { text-align: right; }
+/* Ligne de contrôles en haut d'une vue */
+.bar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 10px; margin-bottom: 16px; }
+.bar label { color: var(--muted); }
+.bar .right { margin-left: auto; }
 
-footer { margin-top: 40px; color: var(--muted); font-size: 12px; }
+select, input, button { font: inherit; color: var(--text); }
+select, input:not([type]) {
+  padding: 4px 6px;
+  border: 1px solid var(--muted);
+  border-radius: 2px;
+  background: var(--input);
+}
+
+.hint { margin: 0; color: var(--muted); }
+
+table { border-collapse: collapse; }
+td { padding: 6px 32px 6px 0; border-bottom: 1px solid var(--line); }
+td.num { padding-right: 0; text-align: right; font-variant-numeric: tabular-nums; }
+
+footer { margin-top: 28px; padding-top: 8px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }

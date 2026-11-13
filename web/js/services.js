@@ -28,6 +28,7 @@ function initServices() {
   ]).then(function (data) {
     svPrepare(data[0], data[1]);
     svDrawCourts();
+    svDrawLegend();
     const players = Array.from(svCtx.players.keys());
     d3.select("#sv-player").selectAll("option").data(players).enter().append("option")
       .attr("value", d => d).text(d => d);
@@ -75,13 +76,13 @@ function svDrawCourts() {
   const zw = svCtx.S / 6 * svCtx.PX, zh = svCtx.SL * svCtx.PX;
   const top = svCtx.MARGIN * svCtx.PX;
   const svg = d3.select("#sv-courts").append("svg")
-    .attr("viewBox", `0 0 ${3 * w + 2 * svCtx.GAP} ${h + 70}`);
+    .attr("viewBox", `0 0 ${3 * w + 2 * svCtx.GAP} ${h + 76}`);
 
   svCtx.SURFACES.forEach(function (s, i) {
     const g = svg.append("g").attr("id", "sv-" + s)
       .attr("transform", `translate(${i * (w + svCtx.GAP)},30)`);
     g.append("text").attr("class", "sv-title").attr("y", -10).text(svCtx.NAMES[s]);
-    g.append("rect").attr("width", w).attr("height", h).attr("rx", 6).attr("fill", svCtx.COURT[s]);
+    g.append("rect").attr("width", w).attr("height", h).attr("fill", svCtx.COURT[s]);
 
     // Six zones, colorées selon l'écart à la moyenne
     g.selectAll("rect.zone").data(svCtx.ZONES).enter().append("rect")
@@ -115,6 +116,24 @@ function svDrawCourts() {
     g.append("text").attr("class", "sv-small").attr("x", svZoneX(4.5)).attr("y", h + 40)
       .attr("text-anchor", "middle").text("carré égalité");
   });
+}
+
+// Légende de l'échelle de couleur : un dégradé fait à la main, comme au TD 5
+function svDrawLegend() {
+  const w = 180, h = 10, m = 24;
+  const svg = d3.select("#sv-legend").append("svg").attr("width", w + 2 * m).attr("height", 46);
+  svg.append("defs").append("linearGradient").attr("id", "sv-gradient")
+    .selectAll("stop").data(svCtx.color.domain()).enter().append("stop")
+    .attr("offset", (d, i) => i / 2).attr("stop-color", d => svCtx.color(d));
+  svg.append("text").attr("x", m + w / 2).attr("y", 10).attr("text-anchor", "middle")
+    .text("Écart à la moyenne du circuit (points de %)");
+  const g = svg.append("g").attr("transform", `translate(${m},16)`);
+  g.append("rect").attr("width", w).attr("height", h).attr("fill", "url(#sv-gradient)");
+  // L'échelle est bornée : au-delà de 10 points d'écart, la couleur ne change plus
+  const x = d3.scaleLinear().domain([-10, 10]).range([0, w]);
+  g.append("g").attr("transform", `translate(0,${h})`)
+    .call(d3.axisBottom(x).tickValues([-10, 0, 10]).tickSize(4)
+      .tickFormat(d => (d < 0 ? "≤ −10" : d > 0 ? "≥ +10" : "0")));
 }
 
 function svUpdate(player) {

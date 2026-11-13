@@ -6,6 +6,7 @@ function createViz() {
   initSummary();
   initServices();   // js/services.js
   initFiche();      // js/fiche.js
+  initJoueur();     // js/joueur.js
 }
 
 // Onglets : un bouton par section, on affiche celle qui est choisie.
@@ -37,6 +38,6 @@ function initSummary() {
       .selectAll("tr").data(rows).enter().append("tr")
       .selectAll("td").data(d => d).enter().append("td")
       .attr("class", (d, i) => (i === 1 ? "num" : null))
-      .text(d => (typeof d === "number" ? d3.format(",")(d) : d));
+      .text(d => (typeof d === "number" ? d.toLocaleString("fr-FR") : d));
   });
 }

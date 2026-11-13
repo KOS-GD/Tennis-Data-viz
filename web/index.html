@@ -6,10 +6,12 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="css/services.css">
   <link rel="stylesheet" href="css/fiche.css">
+  <link rel="stylesheet" href="css/joueur.css">
   <script src="d3.v7.min.js"></script>
   <script src="main.js"></script>
   <script src="js/services.js"></script>
   <script src="js/fiche.js"></script>
+  <script src="js/joueur.js"></script>
 </head>
 <body onload="createViz();">
   <header>
@@ -17,58 +19,88 @@
     <nav id="tabs">
       <button data-tab="donnees">Les données</button>
       <button data-tab="services">Services</button>
-      <button data-tab="view-fiche">Fiche joueur</button>
+      <button data-tab="view-joueur">Fiche joueur</button>
+      <button data-tab="view-fiche">Comparer les joueurs</button>
     </nav>
   </header>
 
   <section class="tab" id="donnees">
     <h2>Les données</h2>
-    <p class="hint">Trois sources de Jeff Sackmann, simple messieurs, matchs joués jusqu'au bout.</p>
     <div id="summary"></div>
   </section>
 
   <section class="tab" id="services">
     <h2>Où servent-ils ?</h2>
-    <p class="hint">Rouge : le joueur sert plus que la moyenne du circuit dans cette zone. Bleu : moins.</p>
-    <select id="sv-player"></select>
+    <div class="bar">
+      <label for="sv-player">Joueur</label>
+      <select id="sv-player"></select>
+      <span class="sv-key right"><span class="sv-ball"></span>120 balles par court, réparties comme ses services</span>
+      <div id="sv-legend"></div>
+    </div>
     <div id="sv-courts"></div>
   </section>
 
-  <section class="tab" id="view-fiche">
+  <section class="tab" id="view-joueur">
     <h2>Fiche joueur</h2>
-    <p class="lede">Le profil d'un joueur sur sept critères, de 1991 à mai 2026, comparé aux <span id="fj-pool">joueurs du groupe</span>. Chaque axe va du plus faible au meilleur d'entre eux.</p>
+    <div class="bar">
+      <label for="jo-input">Joueur</label>
+      <input id="jo-input" list="jo-list" placeholder="Rechercher un nom…" autocomplete="off">
+      <datalist id="jo-list"></datalist>
+      <span class="hint" id="jo-message"></span>
+      <span class="right seg" id="jo-mode"></span>
+    </div>
 
     <div class="layout">
-      <aside>
-        <section>
-          <h2>Joueurs</h2>
-          <input id="fj-player-input" list="fj-player-list" placeholder="Taper un nom…" autocomplete="off">
-          <datalist id="fj-player-list"></datalist>
-          <div class="chips" id="fj-chips"></div>
-          <p class="hint" id="fj-message"></p>
-          <p class="hint">Trois joueurs au maximum, pour les comparer.</p>
-        </section>
-        <section>
-          <h2>Affichage</h2>
-          <div class="seg" id="fj-mode"></div>
-          <p class="hint">Le radar montre la forme du profil ; les barres alignées donnent une lecture précise, avec l'intervalle de confiance.</p>
-        </section>
-        <section>
-          <h2>Légende</h2>
-          <p class="hint"><span class="key-median"></span> joueur médian du groupe</p>
-          <p class="hint">Marqueur creux, valeur grisée : peu de données</p>
-          <p class="hint" id="fj-key-ci" hidden><span class="key-ci"></span> intervalle de confiance à 95 %</p>
-        </section>
-      </aside>
+      <div class="side">
+        <div class="identity">
+          <div class="photo" id="jo-photo" role="img"></div>
+          <div class="who">
+            <div class="name" id="jo-name">Chargement…</div>
+            <p id="jo-facts"></p>
+            <p id="jo-career"></p>
+          </div>
+        </div>
+        <h3>Carrière</h3>
+        <div id="jo-stats"></div>
+        <h3>Adversaires</h3>
+        <div id="jo-rivals"></div>
+      </div>
 
-      <div class="stage">
-        <div id="fj-chart">Chargement…</div>
-        <p class="note">Lecture : survolez un marqueur pour la valeur exacte, son intervalle de confiance à 95 % (Wilson) et l'effectif ; survolez le nom d'un critère pour son évolution saison par saison. Groupe de référence : joueurs avec au moins 200 matchs ATP depuis 1991 ; une valeur calculée sur moins de 20 matchs (500 points, 50 balles de break) est jugée peu fiable.</p>
+      <div>
+        <div id="jo-chart"></div>
+        <div class="legend">
+          <p><span class="key-median"></span>médiane des <span id="jo-pool">joueurs du groupe</span></p>
+          <p><span class="key-low"></span>peu de données</p>
+          <p id="jo-key-ci" hidden><span class="key-ci"></span>intervalle de confiance à 95 %</p>
+        </div>
+      </div>
+    </div>
+    <div id="jo-tooltip" class="tooltip" hidden></div>
+  </section>
+
+  <section class="tab" id="view-fiche">
+    <h2>Comparer les joueurs</h2>
+    <div class="bar">
+      <label for="fj-player-input">Ajouter un joueur</label>
+      <input id="fj-player-input" list="fj-player-list" placeholder="Nom…" autocomplete="off">
+      <datalist id="fj-player-list"></datalist>
+      <span class="hint" id="fj-message"></span>
+      <span class="right seg" id="fj-mode"></span>
+    </div>
+
+    <div class="layout">
+      <div id="fj-chart">Chargement…</div>
+      <div class="legend">
+        <div class="chips" id="fj-chips"></div>
+        <p><span class="key-median"></span>médiane des <span id="fj-pool">joueurs du groupe</span></p>
+        <p><span class="key-axis"></span>chaque axe va du plus faible au meilleur de ces joueurs</p>
+        <p><span class="key-low"></span>peu de données : moins de 20 matchs, 500 points ou 50 balles de break</p>
+        <p id="fj-key-ci" hidden><span class="key-ci"></span>intervalle de confiance à 95 %</p>
       </div>
     </div>
     <div id="fj-tooltip" class="tooltip" hidden></div>
   </section>
 
-  <footer>Données : Jeff Sackmann / Tennis Abstract, licence CC BY-NC-SA 4.0.</footer>
+  <footer>Données : Jeff Sackmann / Tennis Abstract, licence CC BY-NC-SA 4.0. Simple messieurs, matchs joués jusqu'au bout.</footer>
 </body>
 </html>
