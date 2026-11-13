@@ -50,6 +50,7 @@ Le script vide `web/data/` puis y écrit tous les fichiers ci-dessous. On garde 
 | `charting_<tableau>.csv` | un match × joueur × ligne du tableau | les 16 tableaux de stats du projet, complets : `overview` (la colonne `row` donne le set ou `Total`), `serve_basics`, `serve_direction`, `serve_influence`, `sv_break_total`, `sv_break_split`, `key_points_serve`, `key_points_return`, `return_outcomes`, `return_depth`, `rally`, `shot_types`, `shot_direction`, `shot_dir_outcomes`, `net_points`, `sn_v` |
 | `slam_matches.csv` | un match de Grand Chelem suivi point par point, 2011-2024 | tournoi, surface, tour, court, noms et pays |
 | `charting_player_info.csv` | un match noté × joueur (`player` = `w` / `l`) | identifiant ATP, pays et classement ATP à la date du match, retrouvés par le nom dans l'archive ATP (98 % des joueurs) |
+| `player_photos.csv` | un joueur ayant au moins 50 matchs dans `atp_matches.csv` et une photo sur Wikimedia Commons | `player_id`, nom, `wikidata_id`, chemin de la photo (`img/players/<player_id>.jpg`), auteur, licence et page source de la photo |
 | `slam_points.csv.gz` | un point | set, jeu, score, serveur, 1re ou 2e balle, vitesse (km/h), longueur d'échange, zone et profondeur du service, profondeur du retour, type du coup gagnant, et pour chaque joueur : ace, double faute, coup gagnant, faute directe ou provoquée, montée au filet, balle de break, distance parcourue |
 
 `charting_rally.csv` a une ligne par match, longueur d'échange (`row`) et serveur (`server` = `w`, `l` ou `all`), avec les stats des deux joueurs en colonnes `w_` et `l_`.
@@ -59,6 +60,8 @@ Seule exception à la règle 5 : `charting_serve_influence.csv` est fourni par l
 Des colonnes en partie vides sont normales : la source ne renseigne pas tout. Dans l'archive ATP, `seed` et `entry` ne sont remplis que pour les têtes de série et les entrées particulières (invité, qualifié...). Dans `charting_points`, `second` est vide quand la 1re balle est bonne. Dans `slam_matches`, tour, court et pays ne sont donnés qu'en 2011. Les champs des Grands Chelems ne sont pas tous renseignés chaque année (vitesse 75 % des points, zone du service 42 %, distance parcourue 47 %) : une case vide veut dire « non mesuré ».
 
 Les deux fichiers point par point sont compressés (`.csv.gz`, environ 14 Mo chacun au lieu de 55 et 85). pandas les lit directement ; dans le navigateur, `fetch` puis `DecompressionStream("gzip")`.
+
+**Photos des joueurs.** C'est la seule étape qui a besoin d'internet. L'archive ATP donne l'identifiant Wikidata de chaque joueur ; Wikidata donne sa photo sur Wikimedia Commons. Les vignettes (300 px) sont enregistrées dans `web/img/players/` et ne sont téléchargées qu'une fois : relancer le script ne récupère que les photos manquantes, et le site marche ensuite hors ligne. Sans internet, le script garde les photos déjà là et passe. Les photos sont sous licence libre (CC BY-SA le plus souvent) : auteur et licence s'affichent au survol de la photo.
 
 ## 3. Lancer le site
 
@@ -72,5 +75,7 @@ puis ouvrir http://localhost:8000. Toutes les vues sont des onglets de cette pag
 **Ajouter une vue** : dans `web/index.html`, un bouton `<button data-tab="xxx">` dans `#tabs` et une `<section class="tab" id="xxx">` ; le code dans `web/js/xxx.js` avec une fonction `initXxx()`, appelée dans `createViz()` (`web/main.js`) ; le style dans `web/css/xxx.css`. Préfixer les `id`, classes et variables globales de la vue (la vue des services utilise `sv`) pour ne pas gêner les autres vues.
 
 ## Sources et licence
+
+Photos des joueurs : Wikimedia Commons, auteur et licence de chacune dans `web/data/player_photos.csv`.
 
 Données de Jeff Sackmann / Tennis Abstract, licence [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). Les fichiers de `web/data/` en sont dérivés et suivent la même licence. D3.js v7.9.0 (licence ISC).
