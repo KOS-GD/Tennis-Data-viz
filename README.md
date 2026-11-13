@@ -33,6 +33,8 @@ Le script écrit dans `web/data/` :
 
 - `atp_matches.csv` : un match ATP du circuit principal par ligne, de 1991 à mai 2026 (pas de statistiques avant 1991). Tournoi, surface, tour, les deux joueurs (classement, âge, taille, main, pays) et leurs statistiques de service (préfixe `w_` pour le vainqueur, `l_` pour le perdant). Forfaits et matchs sans statistiques retirés.
 - `charting_players.csv` : indicateurs de style par joueur et par surface (`Hard`, `Clay`, `Grass`, `All`), tirés du Match Charting Project (hommes, au moins 10 matchs notés). Ce sont des proportions : points gagnés au service et au retour, aces, doubles fautes, retours profonds, coups gagnants et fautes directes par point, montées au filet, part de coups droits, part de slices. Les colonnes `matches` et `points` donnent l'effectif.
+- `charting_serve_direction.csv` : nombre de services par zone (côté égalité / avantage × extérieur / corps / centre), par joueur et par surface, 1re et 2e balles ensemble. Ce sont des comptes bruts : le site calcule les pourcentages.
+- `charting_net_matches.csv` : un joueur dans un match noté par ligne (année, surface, points joués, points au filet, points gagnés au filet), matchs d'au moins 40 points, à partir de 1980.
 
 ## 3. Lancer le site
 

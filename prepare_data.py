@@ -3,6 +3,8 @@
 Entrée  : data/raw/ (téléchargé à la main, voir README)
 Sortie  : web/data/atp_matches.csv     un match ATP par ligne, 1991-2026, avec les stats de service
           web/data/charting_players.csv  indicateurs de style par joueur et par surface (Match Charting)
+          web/data/charting_serve_direction.csv  services par zone, par joueur et par surface
+          web/data/charting_net_matches.csv      montées au filet, un joueur dans un match par ligne
 
 Lancer depuis la racine du dépôt :  python prepare_data.py
 """
@@ -126,10 +128,65 @@ def prepare_charting_players() -> pd.DataFrame:
     return out.round(4).sort_values(["player", "surface"])
 
 
+# ---------------------------------------------------------------------------
+# 3. Direction du service (Match Charting Project, hommes)
+# ---------------------------------------------------------------------------
+
+SERVE_ZONES = ["deuce_wide", "deuce_middle", "deuce_t", "ad_wide", "ad_middle", "ad_t"]
+
+
+def read_charting_matches() -> pd.DataFrame:
+    """match_id, surface et année de chaque match noté (surfaces dur / terre / gazon)."""
+    m = pd.read_csv(CHARTING / "charting-m-matches.csv", encoding_errors="replace", low_memory=False)
+    m = m[m["Surface"].isin(SURFACES)][["match_id", "Surface"]].drop_duplicates("match_id")
+    m["year"] = m["match_id"].str[:4].astype(int)   # le match_id commence par la date AAAAMMJJ
+    return m.rename(columns={"Surface": "surface"})
+
+
+def prepare_serve_direction() -> pd.DataFrame:
+    """Comptes bruts de services par zone, par joueur et par surface (+ « All »).
+
+    On garde des comptes et non des pourcentages : le site additionne puis divise,
+    ce qui reste juste quand on regroupe des surfaces.
+    """
+    sd = read_stats("ServeDirection", "Total")[["match_id", "player"] + SERVE_ZONES]  # 1re + 2e balle
+    sd = sd.merge(read_charting_matches(), on="match_id")
+
+    by_surface = sd.groupby(["player", "surface"])
+    g = by_surface[SERVE_ZONES].sum()
+    g["matches"] = by_surface.size()
+    all_ = sd.groupby("player")[SERVE_ZONES].sum()
+    all_["matches"] = sd.groupby("player").size()
+    all_["surface"] = "All"
+    g = pd.concat([g.reset_index(), all_.reset_index()], ignore_index=True)
+    # Seuil plus bas que MIN_MATCHES : le site hachure lui-même les cases sous 20 matchs.
+    g = g[g["matches"] >= 5]
+    return g[["player", "surface", "matches"] + SERVE_ZONES].sort_values(["player", "surface"])
+
+
+# ---------------------------------------------------------------------------
+# 4. Montées au filet, un joueur dans un match par ligne (Match Charting Project)
+# ---------------------------------------------------------------------------
+
+MIN_POINTS = 40            # matchs trop courts (abandons) ou notés en partie seulement
+
+
+def prepare_net_matches() -> pd.DataFrame:
+    net = read_stats("NetPoints", "NetPoints")[["match_id", "player", "net_pts", "pts_won"]] \
+        .rename(columns={"pts_won": "net_won"})
+    ov = read_stats("Overview", "Total")[["match_id", "player", "serve_pts", "return_pts"]]
+    df = net.merge(ov, on=["match_id", "player"]).merge(read_charting_matches(), on="match_id")
+    df["points"] = df["serve_pts"] + df["return_pts"]
+    df = df[(df["points"] >= MIN_POINTS) & (df["year"] >= 1980)]
+    return df[["player", "year", "surface", "points", "net_pts", "net_won"]].sort_values(["year", "player"])
+
+
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
     for name, build in [("atp_matches", prepare_atp_matches),
-                        ("charting_players", prepare_charting_players)]:
+                        ("charting_players", prepare_charting_players),
+                        ("charting_serve_direction", prepare_serve_direction),
+                        ("charting_net_matches", prepare_net_matches)]:
         df = build()
         path = OUT / f"{name}.csv"
         df.to_csv(path, index=False)
