@@ -5,55 +5,54 @@
 (() => {
 
 const ctx = {
-  // Court en mètres (dimensions ITF) : on dessine la moitié du relanceur, filet en haut.
-  W: 10.97, S: 8.23, HALF: 11.885, SL: 6.40,
-  TOP: 2.4,            // espace au-dessus du filet, d'où arrivent les services
-  BOTTOM: 1.4,         // recul derrière la ligne de fond
-  SIDE: 1.3,
-  PX: 24,              // pixels par mètre
-  GAP: 34,             // espace entre deux courts
-  TITLE_H: 46,         // hauteur réservée au titre de chaque court
-  N_DOTS: 160,         // points par court : chacun vaut 1/160 des services bons du joueur sur la surface
-  MIN_SERVES: 60,      // en dessous, le court est grisé
+  // Court en mètres (dimensions ITF). On montre la moitié du relanceur, filet en haut, recadrée
+  // un peu après la ligne de service : toute l'information est dans les carrés de service.
+  W: 10.97, S: 8.23, SL: 6.40,
+  TOP: 2.0,            // au-dessus du filet : d'où arrivent les services
+  DEPTH: 9.2,          // profondeur montrée sous le filet
+  SIDE: 0.9,
+  PX: 34,              // pixels par mètre
+  GAP: 30,
+  HEAD: 44,            // titre au-dessus de chaque court
+  STRIP: 70,           // bande des pourcentages sous chaque court
+  N_DOTS: 160,         // balles par court : chacune vaut 1/160 des services bons du joueur sur la surface
+  MIN_SERVES: 60,      // en dessous, le court est atténué
   MIN_MATCHES: 15,     // joueurs proposés dans la liste
-  DELTA_MAX: 10,       // écart (en points) qui sature l'échelle de couleur
-  STAGE: 500,          // durée d'une étape de transition
-  FLIGHT: 700,         // durée du vol d'une balle
+  DELTA_MAX: 10,       // écart (points) qui donne la couleur la plus intense
+  OUT: 450,            // étape 1 : les balles précédentes s'effacent
+  PAINT: 700,          // étape 2 : la couleur se peint au sol, du filet vers le fond
+  FLIGHT: 900,         // étape 3 : durée du vol d'une balle
+  SPREAD: 1500,        // étalement des départs des 160 balles
   SURFACES: [["Hard", "Dur"], ["Clay", "Terre battue"], ["Grass", "Gazon"]],
   ZONES: ["wide", "middle", "t"],
   ZONE_NAMES: { wide: "Extérieur", middle: "Corps", t: "T" },
   ZONE_SHORT: { wide: "ext.", middle: "corps", t: "T" },
   BOXES: ["ad", "deuce"],
   BOX_NAMES: { deuce: "carré égalité", ad: "carré avantage" },
-  FIRST: "#14213d",    // 1re balle
-  SECOND: "#fca311",   // 2e balle
+  PLUS: "#b8473d",     // plus que la moyenne
+  MINUS: "#3f6fa3",    // moins que la moyenne
 };
 
-// Surface : couleurs du court (identifient la surface, ne portent pas de donnée)
+// Couleurs sourdes des surfaces : elles identifient le court sans attirer l'œil.
 ctx.COURT = {
-  Hard: { inner: "#3d6fae", outer: "#4f8b6c", stripes: false },
-  Clay: { inner: "#c8693c", outer: "#bb5f35", stripes: false },
-  Grass: { inner: "#5b9646", outer: "#518940", stripes: true },
+  Hard: { inner: "#5b7391", outer: "#6b8277" },
+  Clay: { inner: "#b37c63", outer: "#a87259" },
+  Grass: { inner: "#76926a", outer: "#6c8862" },
 };
-
-// Échelle divergente (séance 2, comme au TD 5) : bleu = moins que la moyenne, rouge = plus.
-ctx.delta = d3.scaleLinear().domain([-ctx.DELTA_MAX, 0, ctx.DELTA_MAX])
-  .range(["#2f6db5", "#f4f1ea", "#c8322d"]).clamp(true);
 
 // ---------------------------------------------------------------------------
-// Géométrie d'un court : u en travers (0 = ligne centrale, > 0 à droite = côté égalité),
-// d en profondeur depuis le filet.
+// Géométrie : u en travers (0 = ligne centrale, > 0 à droite = côté égalité), d en profondeur
+// depuis le filet (d < 0 : de l'autre côté du filet).
 // ---------------------------------------------------------------------------
 
 const CW = () => (ctx.W + 2 * ctx.SIDE) * ctx.PX;
-const CH = () => (ctx.TOP + ctx.HALF + ctx.BOTTOM) * ctx.PX;
+const CH = () => (ctx.TOP + ctx.DEPTH) * ctx.PX;
 const X = u => (ctx.W / 2 + ctx.SIDE + u) * ctx.PX;
 const Y = d => (ctx.TOP + d) * ctx.PX;
 
 function zoneBounds(box, zone) {
-  const h = ctx.S / 2, third = h / 3, k = { t: 0, middle: 1, wide: 2 }[zone];
-  const a = k * third, b = (k + 1) * third;
-  return box === "deuce" ? [a, b] : [-b, -a];
+  const third = ctx.S / 6, k = { t: 0, middle: 1, wide: 2 }[zone];
+  return box === "deuce" ? [k * third, (k + 1) * third] : [-(k + 1) * third, -k * third];
 }
 
 // ---------------------------------------------------------------------------
@@ -67,23 +66,21 @@ function initServices() {
     drawCourts();
     drawLegend();
     initPicker();
-    select(ctx.featured[0], true);
+    select(ctx.featured[0]);
   });
 }
 
 // Comptes par joueur, surface, carré, zone et balle (1re / 2e), et moyenne du circuit.
 function prepareData(dir, matches) {
   const byMatch = new Map(matches.map(m => [m.match_id, m]));
-  ctx.stats = new Map();                 // clé "joueur|surface"
-  ctx.tour = new Map();                  // clé "surface"
-  const empty = () => ({ n: 0, matches: new Set(), c: {} });
+  ctx.stats = new Map();
+  ctx.tour = new Map();
   const add = (map, key, d) => {
-    if (!map.has(key)) map.set(key, empty());
+    if (!map.has(key)) map.set(key, { n: 0, matches: new Set(), c: {} });
     const s = map.get(key);
     s.matches.add(d.match_id);
     ctx.BOXES.forEach(b => ctx.ZONES.forEach(z => {
-      const k = `${b}_${z}_${d.row}`;
-      const v = d[`${b}_${z}`] || 0;
+      const k = `${b}_${z}_${d.row}`, v = d[`${b}_${z}`] || 0;
       s.c[k] = (s.c[k] || 0) + v;
       s.n += v;
     }));
@@ -94,14 +91,11 @@ function prepareData(dir, matches) {
     add(ctx.stats, `${m[`${d.player}_name`]}|${m.surface}`, d);
     add(ctx.tour, m.surface, d);
   });
-  // Joueurs proposés : au moins MIN_MATCHES matchs notés
-  const counts = d3.rollups(matches.flatMap(m => [m.w_name, m.l_name]), v => v.length, d => d)
+  ctx.players = d3.rollups(matches.flatMap(m => [m.w_name, m.l_name]), v => v.length, d => d)
     .filter(d => d[1] >= ctx.MIN_MATCHES).sort((a, b) => b[1] - a[1]);
-  ctx.players = counts;
-  ctx.featured = counts.slice(0, 8).map(d => d[0]);
+  ctx.featured = ctx.players.slice(0, 8).map(d => d[0]);
 }
 
-// Part d'une zone dans son carré (1re et 2e balles ensemble)
 function share(s, box, zone) {
   if (!s) return { k: 0, n: 0, p: NaN };
   const get = (z, r) => s.c[`${box}_${z}_${r}`] || 0;
@@ -115,76 +109,109 @@ function share(s, box, zone) {
 // ---------------------------------------------------------------------------
 
 function drawCourts() {
-  const width = 3 * CW() + 2 * ctx.GAP, height = CH() + ctx.TITLE_H;
+  const width = 3 * CW() + 2 * ctx.GAP, height = ctx.HEAD + CH() + ctx.STRIP;
   const svg = d3.select("#sv-courts").append("svg").attr("viewBox", `0 0 ${width} ${height}`)
     .attr("role", "img").attr("aria-label", "Trois demi-courts avec les services du joueur choisi");
   const defs = svg.append("defs");
-  const stripe = ctx.HALF / 6 * ctx.PX;
-  const mow = defs.append("pattern").attr("id", "sv-mow").attr("patternUnits", "userSpaceOnUse")
-    .attr("width", 10).attr("height", stripe * 2).attr("y", Y(0));
-  mow.append("rect").attr("width", 10).attr("height", stripe).attr("fill", "rgba(255,255,255,.08)");
-  const shade = defs.append("linearGradient").attr("id", "sv-shade").attr("x1", 0).attr("x2", 0).attr("y1", 0).attr("y2", 1);
-  shade.append("stop").attr("offset", "0%").attr("stop-color", "#000").attr("stop-opacity", 0.22);
-  shade.append("stop").attr("offset", "25%").attr("stop-color", "#000").attr("stop-opacity", 0);
+
+  // Balles : dégradé radial (éclairées en haut à gauche) ; 1re balle claire, 2e balle sombre
+  [["sv-ball1", "#ffffff", "#e9e6df", "#b9b4a8"], ["sv-ball2", "#5d5a55", "#2f2d2a", "#141312"]]
+    .forEach(([id, a, b, c]) => {
+      const g = defs.append("radialGradient").attr("id", id).attr("cx", "35%").attr("cy", "30%").attr("r", "75%");
+      g.append("stop").attr("offset", "0%").attr("stop-color", a);
+      g.append("stop").attr("offset", "60%").attr("stop-color", b);
+      g.append("stop").attr("offset", "100%").attr("stop-color", c);
+    });
+  // Bord flou des zones colorées : la couleur semble peinte au sol
+  defs.append("filter").attr("id", "sv-soft").attr("x", "-10%").attr("y", "-10%").attr("width", "120%").attr("height", "120%")
+    .append("feGaussianBlur").attr("stdDeviation", 2.5);
+  // Le bas du court se fond dans la page
+  const fade = defs.append("linearGradient").attr("id", "sv-fade").attr("x1", 0).attr("x2", 0).attr("y1", 0).attr("y2", 1);
+  fade.append("stop").attr("offset", "78%").attr("stop-color", "#fff").attr("stop-opacity", 1);
+  fade.append("stop").attr("offset", "100%").attr("stop-color", "#fff").attr("stop-opacity", 0);
+  defs.append("mask").attr("id", "sv-fade-mask").attr("maskContentUnits", "userSpaceOnUse")
+    .append("rect").attr("width", CW()).attr("height", CH()).attr("fill", "url(#sv-fade)");
+  // Éclairage : léger assombrissement côté filet
+  const light = defs.append("linearGradient").attr("id", "sv-light").attr("x1", 0).attr("x2", 0).attr("y1", 0).attr("y2", 1);
+  light.append("stop").attr("offset", "0%").attr("stop-color", "#000").attr("stop-opacity", 0.18);
+  light.append("stop").attr("offset", "30%").attr("stop-color", "#000").attr("stop-opacity", 0);
 
   ctx.courts = {};
   ctx.SURFACES.forEach(([surface, label], i) => {
     const g = svg.append("g").attr("transform", `translate(${i * (CW() + ctx.GAP)},0)`);
-    g.append("text").attr("class", "court-title").attr("x", 2).attr("y", 18).text(label);
-    const nText = g.append("text").attr("class", "court-n").attr("x", 2).attr("y", 36);
-    const c = g.append("g").attr("transform", `translate(0,${ctx.TITLE_H})`);
-    const st = ctx.COURT[surface];
-    const hw = ctx.W / 2, hs = ctx.S / 2;
+    g.append("text").attr("class", "court-title").attr("x", 0).attr("y", 20).text(label);
+    const nText = g.append("text").attr("class", "court-n").attr("x", 0).attr("y", 37);
 
-    c.append("rect").attr("width", CW()).attr("height", CH()).attr("rx", 14).attr("fill", st.outer);
-    c.append("rect").attr("x", X(-hw)).attr("y", Y(0)).attr("width", ctx.W * ctx.PX)
-      .attr("height", ctx.HALF * ctx.PX).attr("fill", st.inner);
-    if (st.stripes) c.append("rect").attr("width", CW()).attr("height", CH()).attr("rx", 14).attr("fill", "url(#sv-mow)");
-    c.append("rect").attr("width", CW()).attr("height", CH()).attr("rx", 14).attr("fill", "url(#sv-shade)");
+    const c = g.append("g").attr("transform", `translate(0,${ctx.HEAD})`).attr("opacity", 1);
+    const ground = c.append("g").attr("mask", "url(#sv-fade-mask)");
+    const st = ctx.COURT[surface], hw = ctx.W / 2, hs = ctx.S / 2;
+    ground.append("rect").attr("width", CW()).attr("height", CH()).attr("rx", 10).attr("fill", st.outer);
+    ground.append("rect").attr("x", X(-hw)).attr("y", Y(0)).attr("width", ctx.W * ctx.PX)
+      .attr("height", ctx.DEPTH * ctx.PX).attr("fill", st.inner);
 
-    // Zones : couleur = écart à la moyenne du circuit
-    const zones = c.append("g");
+    // Couleur d'écart peinte au sol, révélée du filet vers le fond par un masque qui s'agrandit
+    const clipId = `sv-paint-${surface}`;
+    const clip = defs.append("clipPath").attr("id", clipId).append("rect")
+      .attr("x", 0).attr("y", Y(0)).attr("width", CW()).attr("height", 0);
+    const paint = ground.append("g").attr("clip-path", `url(#${clipId})`).attr("filter", "url(#sv-soft)");
     ctx.BOXES.forEach(box => ctx.ZONES.forEach(zone => {
       const [u0, u1] = zoneBounds(box, zone);
-      zones.append("rect").attr("class", `zone z-${box}-${zone}`)
-        .attr("x", X(u0)).attr("y", Y(0)).attr("width", (u1 - u0) * ctx.PX).attr("height", ctx.SL * ctx.PX)
-        .attr("fill", ctx.delta(0)).attr("fill-opacity", 0.82);
+      paint.append("rect").attr("class", `zone z-${box}-${zone}`)
+        .attr("x", X(u0) + 1).attr("y", Y(0)).attr("width", (u1 - u0) * ctx.PX - 2).attr("height", ctx.SL * ctx.PX)
+        .attr("fill", ctx.PLUS).attr("fill-opacity", 0);
     }));
+    ground.append("rect").attr("width", CW()).attr("height", CH()).attr("fill", "url(#sv-light)");
 
-    // Lignes et filet
-    const lines = c.append("g").attr("stroke", "#fff").attr("stroke-width", 2).attr("fill", "none");
-    lines.append("rect").attr("x", X(-hw)).attr("y", Y(0)).attr("width", ctx.W * ctx.PX).attr("height", ctx.HALF * ctx.PX);
-    [-hs, hs].forEach(u => lines.append("line").attr("x1", X(u)).attr("x2", X(u)).attr("y1", Y(0)).attr("y2", Y(ctx.HALF)));
+    // Lignes (blanches, fines) et filet
+    const lines = ground.append("g").attr("stroke", "rgba(255,255,255,.92)").attr("stroke-width", 2).attr("fill", "none");
+    [-hw, -hs, hs, hw].forEach(u => lines.append("line").attr("x1", X(u)).attr("x2", X(u)).attr("y1", Y(0)).attr("y2", CH()));
     lines.append("line").attr("x1", X(-hs)).attr("x2", X(hs)).attr("y1", Y(ctx.SL)).attr("y2", Y(ctx.SL));
     lines.append("line").attr("x1", X(0)).attr("x2", X(0)).attr("y1", Y(0)).attr("y2", Y(ctx.SL));
-    lines.append("line").attr("x1", X(0)).attr("x2", X(0)).attr("y1", Y(ctx.HALF) - 6).attr("y2", Y(ctx.HALF));
-    c.append("line").attr("x1", X(-hw - 0.9)).attr("x2", X(hw + 0.9)).attr("y1", Y(0)).attr("y2", Y(0))
-      .attr("stroke", "#1b1f24").attr("stroke-width", 4);
-    c.append("line").attr("x1", X(-hw - 0.9)).attr("x2", X(hw + 0.9)).attr("y1", Y(0) - 2).attr("y2", Y(0) - 2)
-      .attr("stroke", "#fff").attr("stroke-width", 1.5);
+    // repères discrets entre les zones
+    ctx.BOXES.forEach(box => ["middle", "wide"].forEach(zone => {
+      const [u0, u1] = zoneBounds(box, zone), u = box === "deuce" ? u0 : u1;
+      lines.append("line").attr("x1", X(u)).attr("x2", X(u)).attr("y1", Y(0)).attr("y2", Y(ctx.SL))
+        .attr("stroke", "rgba(255,255,255,.28)").attr("stroke-width", 1).attr("stroke-dasharray", "3 5");
+    }));
+    c.append("rect").attr("x", X(-hw - 0.6)).attr("y", Y(0) - 1).attr("width", (ctx.W + 1.2) * ctx.PX).attr("height", 7)
+      .attr("fill", "#000").attr("opacity", 0.18);
+    c.append("line").attr("x1", X(-hw - 0.6)).attr("x2", X(hw + 0.6)).attr("y1", Y(0) - 2).attr("y2", Y(0) - 2)
+      .attr("stroke", "#23262b").attr("stroke-width", 3);
+    c.append("line").attr("x1", X(-hw - 0.6)).attr("x2", X(hw + 0.6)).attr("y1", Y(0) - 4).attr("y2", Y(0) - 4)
+      .attr("stroke", "#f4f2ee").attr("stroke-width", 1.5);
 
-    // Étiquettes par zone : part (%) et écart à la moyenne
-    const labels = c.append("g");
+    // Noms des zones, discrets, en haut de chaque zone
     ctx.BOXES.forEach(box => ctx.ZONES.forEach(zone => {
       const [u0, u1] = zoneBounds(box, zone);
-      const lg = labels.append("g").attr("class", `lab l-${box}-${zone}`)
-        .attr("transform", `translate(${X((u0 + u1) / 2)},${Y(ctx.SL + 0.95)})`);
-      lg.append("text").attr("class", "zone-pct").attr("text-anchor", "middle");
-      lg.append("text").attr("class", "zone-delta").attr("text-anchor", "middle").attr("dy", 15);
-      labels.append("text").attr("class", "zone-name").attr("text-anchor", "middle")
-        .attr("x", X((u0 + u1) / 2)).attr("y", Y(0.55)).text(ctx.ZONE_SHORT[zone]);
+      c.append("text").attr("class", "zone-name").attr("text-anchor", "middle")
+        .attr("x", X((u0 + u1) / 2)).attr("y", Y(0) + 18).text(ctx.ZONE_SHORT[zone]);
     }));
 
-    const dots = c.append("g");
-    // Zones survolables, au-dessus de tout
-    const hits = c.append("g");
+    const shadows = c.append("g"), balls = c.append("g"), ripples = c.append("g");
+
+    // Bande sous le court : part de chaque zone (grand) et écart à la moyenne (petit)
+    const strip = g.append("g").attr("transform", `translate(0,${ctx.HEAD + CH() + 6})`);
+    ctx.BOXES.forEach(box => {
+      const [a] = zoneBounds(box, box === "deuce" ? "t" : "wide"), [, b] = zoneBounds(box, box === "deuce" ? "wide" : "t");
+      strip.append("line").attr("x1", X(a) + 3).attr("x2", X(b) - 3).attr("y1", 0).attr("y2", 0).attr("class", "strip-rule");
+      strip.append("text").attr("class", "strip-box").attr("text-anchor", "middle").attr("x", X((a + b) / 2)).attr("y", 62)
+        .text(ctx.BOX_NAMES[box]);
+      ctx.ZONES.forEach(zone => {
+        const [u0, u1] = zoneBounds(box, zone);
+        const z = strip.append("g").attr("class", `lab l-${box}-${zone}`).attr("transform", `translate(${X((u0 + u1) / 2)},0)`);
+        z.append("text").attr("class", "zone-pct").attr("text-anchor", "middle").attr("y", 26);
+        z.append("text").attr("class", "zone-delta").attr("text-anchor", "middle").attr("y", 43);
+      });
+    });
+
+    // Zones survolables
     ctx.BOXES.forEach(box => ctx.ZONES.forEach(zone => {
       const [u0, u1] = zoneBounds(box, zone);
-      hits.append("rect").attr("class", "zone-hit").datum({ surface, box, zone })
+      c.append("rect").attr("class", "zone-hit").datum({ surface, box, zone })
         .attr("x", X(u0)).attr("y", Y(0)).attr("width", (u1 - u0) * ctx.PX).attr("height", ctx.SL * ctx.PX)
         .on("mousemove", showTooltip).on("mouseleave", hideTooltip);
     }));
-    ctx.courts[surface] = { g: c, nText, dots };
+    ctx.courts[surface] = { g: c, nText, clip, shadows, balls, ripples };
   });
 }
 
@@ -198,73 +225,110 @@ function initPicker() {
   const input = d3.select("#sv-player-input");
   const pick = () => {
     const name = input.property("value").trim();
-    if (ctx.players.some(p => p[0] === name)) { select(name, false); input.property("value", ""); }
+    if (ctx.players.some(p => p[0] === name)) { select(name); input.property("value", ""); }
   };
   input.on("change", pick).on("keydown", e => { if (e.key === "Enter") pick(); });
   d3.select("#sv-featured").selectAll("button").data(ctx.featured).join("button")
-    .text(d => d).on("click", (e, d) => select(d, false));
+    .text(d => d).on("click", (e, d) => select(d));
 }
 
-function select(name, first) {
+function select(name) {
   ctx.player = name;
   d3.select("#sv-featured").selectAll("button").classed("on", d => d === name);
-  ctx.SURFACES.forEach(([surface]) => updateCourt(surface, first));
+  ctx.SURFACES.forEach(([surface], i) => updateCourt(surface, i * 120));
   updateInsight();
 }
 
 // ---------------------------------------------------------------------------
-// Mise à jour d'un court : transition en trois étapes (séance 5, TD 5)
-//   1. les balles du joueur précédent disparaissent ;
-//   2. les zones changent de couleur, les pourcentages défilent ;
-//   3. les nouvelles balles sont servies une à une depuis l'autre côté du filet.
+// Transition en trois étapes (séance 5, TD 5), décalée d'un court à l'autre :
+//   1. les balles du joueur précédent s'effacent et la peinture se retire vers le filet ;
+//   2. la couleur d'écart se peint au sol, du filet vers le fond ;
+//   3. les balles sont servies une à une : vol en cloche au-dessus de leur ombre, impact marqué
+//      par une onde, et le pourcentage de chaque zone monte au rythme des impacts.
 // ---------------------------------------------------------------------------
 
-function updateCourt(surface, first) {
+function updateCourt(surface, offset) {
   const court = ctx.courts[surface];
-  const s = ctx.stats.get(`${ctx.player}|${surface}`);
-  const tour = ctx.tour.get(surface);
-  const n = s ? s.n : 0;
-  const few = n < ctx.MIN_SERVES;
-  const fmt = d3.format(",");
-  court.nText.text(s ? `${fmt(n)} services bons · ${s.matches.size} matchs${few ? " · trop peu pour conclure" : ""}`
+  const s = ctx.stats.get(`${ctx.player}|${surface}`), tour = ctx.tour.get(surface);
+  const n = s ? s.n : 0, few = n < ctx.MIN_SERVES;
+  court.nText.text(s ? `${d3.format(",")(n)} services bons · ${s.matches.size} matchs${few ? " · trop peu pour conclure" : ""}`
                      : "aucun match noté");
 
-  const t1 = first ? 0 : ctx.STAGE;
-  // Étape 2 : couleur des zones et étiquettes
+  // Étape 1
+  const t0 = offset;
+  court.balls.selectAll("circle").interrupt().transition().delay(() => t0 + Math.random() * 150).duration(ctx.OUT)
+    .attr("opacity", 0).attr("r", 0).remove();
+  court.shadows.selectAll("ellipse").interrupt().transition().delay(t0).duration(ctx.OUT).attr("opacity", 0).remove();
+  court.clip.interrupt().transition().delay(t0).duration(ctx.OUT).ease(d3.easeCubicIn).attr("height", 0);
+
+  // Étape 2
+  const t1 = t0 + ctx.OUT;
   ctx.BOXES.forEach(box => ctx.ZONES.forEach(zone => {
-    const p = share(s, box, zone), avg = share(tour, box, zone);
-    const delta = (p.p - avg.p) * 100;
-    court.g.select(`.z-${box}-${zone}`).transition().delay(t1).duration(ctx.STAGE)
-      .attr("fill", few || isNaN(delta) ? "#d9d6cf" : ctx.delta(delta));
-    const lab = court.g.select(`.l-${box}-${zone}`);
-    const pct = lab.select(".zone-pct"), del = lab.select(".zone-delta");
-    const from = +pct.attr("data-v") || 0, to = isNaN(p.p) ? 0 : p.p;
-    pct.attr("data-v", to).transition().delay(t1).duration(ctx.STAGE)
-      .tween("text", () => { const i = d3.interpolateNumber(from, to); return t => pct.text(isNaN(p.p) ? "–" : d3.format(".0%")(i(t))); });
-    del.transition().delay(t1).duration(ctx.STAGE).style("opacity", few || isNaN(delta) ? 0 : 1)
-      .text(isNaN(delta) ? "" : `${delta >= 0 ? "+" : "−"}${Math.abs(delta).toFixed(0)}`)
-      .style("fill", delta >= 0 ? "#9b1d19" : "#1f4f8c");
+    const p = share(s, box, zone), a = share(tour, box, zone), delta = (p.p - a.p) * 100;
+    const ok = !few && !isNaN(delta);
+    court.g.select(`.z-${box}-${zone}`).transition().delay(t1 - 1).duration(0)
+      .attr("fill", delta >= 0 ? ctx.PLUS : ctx.MINUS)
+      .attr("fill-opacity", ok ? 0.72 * Math.min(1, Math.abs(delta) / ctx.DELTA_MAX) : 0);
   }));
-  court.g.transition().delay(t1).duration(ctx.STAGE).attr("opacity", few ? 0.55 : 1);
+  court.clip.transition().delay(t1).duration(ctx.PAINT).ease(d3.easeCubicOut).attr("height", ctx.SL * ctx.PX + 6);
+  court.g.transition().delay(t0).duration(ctx.OUT).attr("opacity", few ? 0.55 : 1);
 
-  // Nouvelles balles : N_DOTS réparties entre (carré, zone, balle) au prorata des comptes
+  // Étape 3
+  const t2 = t1 + ctx.PAINT * 0.6;
   const dots = s ? allocate(s, surface) : [];
+  const landing = ctx.SPREAD + ctx.FLIGHT;
+  dots.forEach(d => { d.delay = t2 + d.order / ctx.N_DOTS * ctx.SPREAD; });
 
-  // Étape 1 : les anciennes balles disparaissent (rétrécissent sur place)
-  court.dots.selectAll("circle")
-    .transition("out").delay(() => Math.random() * 200).duration(first ? 0 : ctx.STAGE * 0.8)
-    .attr("r", 0).remove();
+  court.shadows.selectAll(null).data(dots).enter().append("ellipse")
+    .attr("cx", d => d.x0).attr("cy", d => d.y0).attr("rx", 0).attr("ry", 0)
+    .attr("fill", "#000").attr("opacity", 0)
+    .transition().delay(d => d.delay).duration(ctx.FLIGHT).ease(d3.easeLinear)
+    .tween("flight", function (d) {
+      const el = d3.select(this);
+      return t => {
+        const h = height(t);
+        el.attr("cx", d.x0 + (d.x - d.x0) * t).attr("cy", d.y0 + (d.y - d.y0) * t)
+          .attr("rx", 3 + h * 0.06).attr("ry", 1.6 + h * 0.03).attr("opacity", 0.28 - h * 0.003);
+      };
+    });
 
-  // Étape 3 : service des nouvelles balles, dans un ordre aléatoire, avec un effet de hauteur
-  // (le rayon grossit au milieu du vol, comme une balle qui monte vers la caméra).
-  const start = ctx.STAGE * (first ? 0.5 : 1.6);
-  court.dots.selectAll(null).data(dots).enter().append("circle")
+  court.balls.selectAll(null).data(dots).enter().append("circle")
     .attr("cx", d => d.x0).attr("cy", d => d.y0).attr("r", 0)
-    .attr("fill", d => (d.serve === 1 ? ctx.FIRST : ctx.SECOND))
-    .attr("stroke", d => (d.serve === 1 ? "#fff" : "#5a3d00")).attr("stroke-width", 0.7)
-    .transition("in").delay(d => start + d.order * 9).duration(ctx.FLIGHT).ease(d3.easeCubicOut)
-    .attr("cx", d => d.x).attr("cy", d => d.y)
-    .attrTween("r", () => t => 3.2 * (1 + 1.3 * Math.sin(Math.PI * t)));
+    .attr("fill", d => `url(#sv-ball${d.serve})`)
+    .transition().delay(d => d.delay).duration(ctx.FLIGHT).ease(d3.easeLinear)
+    .tween("flight", function (d) {
+      const el = d3.select(this);
+      return t => {
+        const h = height(t);
+        el.attr("cx", d.x0 + (d.x - d.x0) * t).attr("cy", d.y0 + (d.y - d.y0) * t - h)
+          .attr("r", 3.4 + h * 0.045);
+      };
+    })
+    .on("end", function (d) {
+      court.ripples.append("circle").attr("cx", d.x).attr("cy", d.y).attr("r", 2)
+        .attr("fill", "none").attr("stroke", "#fff").attr("stroke-width", 1.2).attr("opacity", 0.8)
+        .transition().duration(600).ease(d3.easeCubicOut).attr("r", 13).attr("opacity", 0).remove();
+    });
+
+  // Pourcentages : ils montent pendant que les balles tombent
+  ctx.BOXES.forEach(box => ctx.ZONES.forEach(zone => {
+    const p = share(s, box, zone), a = share(tour, box, zone), delta = (p.p - a.p) * 100;
+    const lab = d3.select(court.g.node().parentNode).select(`.l-${box}-${zone}`);
+    const pct = lab.select(".zone-pct"), del = lab.select(".zone-delta");
+    pct.interrupt().transition().delay(t0).duration(ctx.OUT).style("opacity", 0.25)
+      .transition().delay(t2 - t0 - ctx.OUT + ctx.FLIGHT * 0.6).duration(landing).ease(d3.easeCubicOut)
+      .style("opacity", 1)
+      .tween("text", () => { const i = d3.interpolateNumber(0, isNaN(p.p) ? 0 : p.p); return t => pct.text(isNaN(p.p) ? "–" : d3.format(".0%")(i(t))); });
+    del.interrupt().style("opacity", 0)
+      .text(few || isNaN(delta) ? "" : `${delta >= 0 ? "+" : "−"}${Math.abs(delta).toFixed(0)} pts`)
+      .style("fill", delta >= 0 ? ctx.PLUS : ctx.MINUS)
+      .transition().delay(t2 + landing).duration(500).style("opacity", 1);
+  }));
+}
+
+// Hauteur de la balle (pixels) le long du vol : frappée haut, elle descend en cloche vers le sol.
+function height(t) {
+  return 38 * (1 - t) * (1 - t) + 48 * Math.sin(Math.PI * t) * (1 - t);
 }
 
 // Répartit N_DOTS balles par la méthode du plus fort reste, puis tire une position dans la zone.
@@ -286,15 +350,13 @@ function allocate(s, surface) {
   cats.forEach(c => {
     const [u0, u1] = zoneBounds(c.box, c.zone);
     for (let i = 0; i < c.m; i++) {
-      // Profondeur : surtout près de la ligne de service ; en travers : uniforme dans la zone
-      const d = Math.max(0.35, Math.min(ctx.SL - 0.15, ctx.SL * (1 - 0.85 * beta(1.4, 3.2))));
-      const lat = u0 + 0.12 + (u1 - u0 - 0.24) * u();
+      const d = Math.max(0.5, Math.min(ctx.SL - 0.18, ctx.SL * (1 - 0.8 * beta(1.4, 3.0))));
+      const lat = u0 + 0.16 + (u1 - u0 - 0.32) * u();
       // Le serveur est en face, de l'autre côté du filet : à gauche pour le carré égalité
-      const sx = c.box === "deuce" ? -1.6 : 1.6;
-      dots.push({ ...c, x: X(lat), y: Y(d), x0: X(sx), y0: Y(-ctx.TOP + 0.2) });
+      dots.push({ ...c, x: X(lat), y: Y(d), x0: X(c.box === "deuce" ? -1.2 : 1.2) + (u() - 0.5) * 10, y0: 46 });
     }
   });
-  d3.shuffle(dots, 0, dots.length).forEach((d, i) => { d.order = i; });
+  d3.shuffle(dots).forEach((d, i) => { d.order = i; });
   return dots;
 }
 
@@ -308,17 +370,17 @@ function updateInsight() {
     const s = ctx.stats.get(`${ctx.player}|${surface}`), tour = ctx.tour.get(surface);
     if (!s || s.n < ctx.MIN_SERVES) return;
     ctx.BOXES.forEach(box => ctx.ZONES.forEach(zone => {
-      const p = share(s, box, zone), a = share(tour, box, zone);
-      const delta = (p.p - a.p) * 100;
+      const p = share(s, box, zone), a = share(tour, box, zone), delta = (p.p - a.p) * 100;
       if (!best || Math.abs(delta) > Math.abs(best.delta)) best = { label, box, zone, p: p.p, a: a.p, delta };
     }));
   });
   const el = d3.select("#sv-insight");
-  if (!best) { el.text(`Pas assez de services notés pour ${ctx.player}.`); return; }
+  el.interrupt().style("opacity", 0);
+  if (!best) { el.text(`Pas assez de services notés pour ${ctx.player}.`).style("opacity", 1); return; }
   const pct = d3.format(".0%");
   const where = best.zone === "t" ? "au T" : best.zone === "wide" ? "à l'extérieur" : "dans le corps";
-  el.style("opacity", 0).html(`<b>${ctx.player}</b> : sur ${best.label.toLowerCase()}, ${pct(best.p)} de ses services dans le ${ctx.BOX_NAMES[best.box]} vont ${where}, contre ${pct(best.a)} en moyenne (${best.delta > 0 ? "+" : "−"}${Math.abs(best.delta).toFixed(0)} points).`)
-    .transition().delay(ctx.STAGE).duration(ctx.STAGE).style("opacity", 1);
+  el.html(`<b>${ctx.player}</b> · sur ${best.label.toLowerCase()}, ${pct(best.p)} de ses services dans le ${ctx.BOX_NAMES[best.box]} vont ${where}, contre ${pct(best.a)} en moyenne.`)
+    .transition().delay(ctx.OUT + ctx.PAINT).duration(600).style("opacity", 1);
 }
 
 // ---------------------------------------------------------------------------
@@ -326,24 +388,18 @@ function updateInsight() {
 // ---------------------------------------------------------------------------
 
 function drawLegend() {
-  const svg = d3.select("#sv-legend").append("svg").attr("width", 660).attr("height", 46)
-    .append("g").attr("transform", "translate(14,0)");
-  const w = 220;
-  const grad = svg.append("defs").append("linearGradient").attr("id", "sv-delta-grad");
-  d3.range(0, 1.01, 0.1).forEach(t => grad.append("stop").attr("offset", `${t * 100}%`)
-    .attr("stop-color", ctx.delta(-ctx.DELTA_MAX + 2 * ctx.DELTA_MAX * t)));
-  svg.append("rect").attr("x", 0).attr("y", 6).attr("width", w).attr("height", 12).attr("rx", 3)
-    .attr("fill", "url(#sv-delta-grad)");
-  const scale = d3.scaleLinear().domain([-ctx.DELTA_MAX, ctx.DELTA_MAX]).range([0, w]);
-  svg.append("g").attr("transform", "translate(0,18)")
-    .call(d3.axisBottom(scale).tickValues([-10, -5, 0, 5, 10]).tickFormat(d => (d > 0 ? `+${d}` : d)).tickSize(4))
-    .call(g => g.select(".domain").remove()).selectAll("text").attr("class", "legend-text");
-  svg.append("text").attr("class", "legend-text").attr("x", w + 10).attr("y", 16)
-    .text("écart à la moyenne du circuit (points)");
-  [[ctx.FIRST, "#fff", "1re balle"], [ctx.SECOND, "#5a3d00", "2e balle"]].forEach(([fill, stroke, label], i) => {
-    const x = w + 10 + i * 90;
-    svg.append("circle").attr("cx", x + 5).attr("cy", 34).attr("r", 4.5).attr("fill", fill).attr("stroke", stroke);
-    svg.append("text").attr("class", "legend-text").attr("x", x + 14).attr("y", 38).text(label);
+  const svg = d3.select("#sv-legend").append("svg").attr("width", 760).attr("height", 34);
+  const sw = (x, color, op) => svg.append("rect").attr("x", x).attr("y", 9).attr("width", 16).attr("height", 16)
+    .attr("rx", 3).attr("fill", color).attr("fill-opacity", op);
+  let x = 0;
+  [[ctx.MINUS, 0.85], [ctx.MINUS, 0.4], ["#cfcac0", 0.5], [ctx.PLUS, 0.4], [ctx.PLUS, 0.85]].forEach(([c, o], i) => sw(x + i * 18, c, o));
+  svg.append("text").attr("class", "legend-text").attr("x", x + 98).attr("y", 21)
+    .text(`moins … plus que la moyenne du circuit (couleur pleine : ±${ctx.DELTA_MAX} points ou plus)`);
+  x = 520;
+  [["url(#sv-ball1)", "1re balle"], ["url(#sv-ball2)", "2e balle"]].forEach(([fill, label], i) => {
+    svg.append("circle").attr("cx", x + i * 100 + 6).attr("cy", 17).attr("r", 5.5).attr("fill", fill)
+      .attr("stroke", "rgba(0,0,0,.25)").attr("stroke-width", 0.5);
+    svg.append("text").attr("class", "legend-text").attr("x", x + i * 100 + 17).attr("y", 21).text(label);
   });
 }
 
