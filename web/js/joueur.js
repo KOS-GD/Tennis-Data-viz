@@ -49,6 +49,7 @@
   const fr = d3.formatLocale({ decimal: ",", thousands: " ", grouping: [3], currency: ["", " €"] });
   const fmtInt = fr.format(",d");
   const pct = v => `${fr.format(".1f")(v * 100)}\u00a0%`;   // espace insécable : « % » ne passe pas seul à la ligne
+  const initials = name => name.split(" ").map(w => w[0]).join("").slice(0, 3);
   const rankText = r => (r === 1 ? "1er" : `${r}e`);
 
   function initJoueur() {
@@ -60,7 +61,10 @@
       const season = +row.tourney_id.slice(0, 4);
       return Object.assign(d3.autoType(row), { season });
     };
-    d3.csv("data/atp_matches.csv", parseRow).then(rows => {
+    // Photos (prepare_data.py, table player_photos) : facultatives, la fiche marche sans.
+    const photos = d3.csv("data/player_photos.csv").catch(() => []);
+    Promise.all([d3.csv("data/atp_matches.csv", parseRow), photos]).then(([rows, ph]) => {
+      ctx.photos = new Map(ph.map(d => [+d.player_id, d]));
       prepareData(rows);
       initControls();
       drawGrids();
@@ -256,9 +260,19 @@
   // ---------------------------------------------------------------------------
 
   function drawIdentity(p) {
-    // Emplacement de la photo (à remplir plus tard) : les initiales en attendant.
-    d3.select("#jo-photo").text(p.name.split(" ").map(w => w[0]).join("").slice(0, 3))
-      .attr("aria-label", `Photo de ${p.name} (à venir)`);
+    // Photo de Wikimedia Commons (auteur et licence au survol) ; sinon les initiales.
+    const box = d3.select("#jo-photo").text("").attr("aria-label", `Photo de ${p.name}`);
+    const ph = ctx.photos.get(p.id);
+    if (ph) {
+      box.append("img")
+        .attr("src", ph.photo).attr("alt", p.name)
+        .attr("title", `Photo : ${ph.author || "auteur inconnu"} (${ph.licence}), Wikimedia Commons`)
+        .style("opacity", 0)
+        .on("load", function () { d3.select(this).transition().duration(ctx.T_CHANGE).style("opacity", 1); })
+        .on("error", () => box.text(initials(p.name)));   // photo absente du dossier
+    } else {
+      box.text(initials(p.name));
+    }
     d3.select("#jo-name").text(p.name);
     const facts = [
       p.ioc,

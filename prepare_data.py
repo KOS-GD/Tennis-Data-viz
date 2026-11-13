@@ -10,10 +10,15 @@ Sortie : web/data/, trois sources, une même règle (voir README, « Règles com
   slam_matches.csv             point par point des Grands Chelems : un match par ligne
   slam_points.csv              point par point des Grands Chelems : un point par ligne (vitesse, échange, distance...)
   charting_player_info.csv     Match Charting : identifiant ATP, pays et classement de chaque joueur noté
+  player_photos.csv            photo de chaque joueur (Wikimedia Commons), vignettes dans web/img/players/
 
 Lancer depuis la racine du dépôt :  python prepare_data.py
 """
+import json
 import re
+import time
+import urllib.parse
+import urllib.request
 from pathlib import Path
 
 import pandas as pd
@@ -340,6 +345,80 @@ def prepare_charting_player_info(matches: pd.DataFrame) -> pd.DataFrame:
     return to_int(out, ["atp_id", "rank"]).sort_values(["match_id", "player"])
 
 
+PHOTOS = Path("web/img/players")
+PHOTO_MIN_MATCHES = 50       # joueurs avec au moins 50 matchs dans atp_matches.csv
+HEADERS = {"User-Agent": "tennis-dataviz-student-project/1.0 (python urllib)"}
+
+
+def get_json(url: str, params: dict) -> dict:
+    """Appelle une API web et renvoie sa réponse JSON."""
+    req = urllib.request.Request(url + "?" + urllib.parse.urlencode(params), headers=HEADERS)
+    with urllib.request.urlopen(req, timeout=60) as r:
+        return json.load(r)
+
+
+def prepare_player_photos(atp_matches: pd.DataFrame) -> pd.DataFrame:
+    """player_photos.csv : une photo par joueur, prise sur Wikimedia Commons.
+
+    L'archive ATP donne l'identifiant Wikidata de chaque joueur (`wikidata_id`). Wikidata donne le nom
+    de sa photo sur Commons (propriété P18), et Commons donne une vignette, l'auteur et la licence.
+    Les vignettes sont enregistrées une fois pour toutes dans web/img/players/<player_id>.jpg :
+    une photo déjà présente n'est pas retéléchargée, le site marche ensuite sans internet.
+    """
+    counts = pd.concat([atp_matches["w_id"], atp_matches["l_id"]]).value_counts()
+    players = pd.read_csv(SACKMANN / "atp_players.csv", encoding_errors="replace", low_memory=False)
+    players = players[players["player_id"].isin(counts[counts >= PHOTO_MIN_MATCHES].index)]
+    players = players.dropna(subset=["wikidata_id"])
+    players["name"] = (players["name_first"].fillna("") + " " + players["name_last"].fillna("")).str.strip()
+
+    # 1. Wikidata : nom du fichier photo de chaque joueur, par paquets de 200
+    files = {}
+    ids = list(players["wikidata_id"])
+    for i in range(0, len(ids), 200):
+        query = ("SELECT ?item ?img WHERE { VALUES ?item { "
+                 + " ".join(f"wd:{q}" for q in ids[i:i + 200]) + " } ?item wdt:P18 ?img }")
+        res = get_json("https://query.wikidata.org/sparql", {"query": query, "format": "json"})
+        for b in res["results"]["bindings"]:
+            q = b["item"]["value"].split("/")[-1]
+            files.setdefault(q, urllib.parse.unquote(b["img"]["value"].split("/")[-1]))
+    players["file"] = players["wikidata_id"].map(files)
+    players = players.dropna(subset=["file"])
+
+    # 2. Commons : adresse de la vignette (300 px de large), auteur et licence, par paquets de 50
+    info = {}
+    names = list(players["file"])
+    for i in range(0, len(names), 50):
+        res = get_json("https://commons.wikimedia.org/w/api.php", {
+            "action": "query", "format": "json", "prop": "imageinfo", "iiprop": "url|extmetadata",
+            "iiurlwidth": 300, "titles": "|".join("File:" + f for f in names[i:i + 50])})
+        for page in res["query"]["pages"].values():
+            if "imageinfo" not in page:
+                continue
+            ii, meta = page["imageinfo"][0], page["imageinfo"][0].get("extmetadata", {})
+            author = re.sub(r"<[^>]+>", "", meta.get("Artist", {}).get("value", "")).strip()
+            info[page["title"].removeprefix("File:").replace(" ", "_")] = {
+                "thumb": ii["thumburl"], "author": author,
+                "licence": meta.get("LicenseShortName", {}).get("value", "")}
+    players["file"] = players["file"].str.replace(" ", "_")
+    players = players[players["file"].isin(info)]
+
+    # 3. Téléchargement des vignettes manquantes
+    PHOTOS.mkdir(parents=True, exist_ok=True)
+    for pid, f in zip(players["player_id"], players["file"]):
+        path = PHOTOS / f"{pid}.jpg"
+        if not path.exists():
+            req = urllib.request.Request(info[f]["thumb"], headers=HEADERS)
+            with urllib.request.urlopen(req, timeout=60) as r:
+                path.write_bytes(r.read())
+            time.sleep(0.2)   # pour ne pas surcharger le serveur
+
+    players["photo"] = "img/players/" + players["player_id"].astype(str) + ".jpg"
+    players["author"] = players["file"].map(lambda f: info[f]["author"])
+    players["licence"] = players["file"].map(lambda f: info[f]["licence"])
+    players["source"] = "https://commons.wikimedia.org/wiki/File:" + players["file"]
+    return players[["player_id", "name", "wikidata_id", "photo", "author", "licence", "source"]]
+
+
 # ---------------------------------------------------------------------------
 
 GZIP = {"charting_points", "slam_points"}   # fichiers point par point, compressés (voir README)
@@ -363,3 +442,7 @@ if __name__ == "__main__":
         save(df, name)
     # Tables ajoutées (section 4)
     save(prepare_charting_player_info(charting["charting_matches"]), "charting_player_info")
+    try:   # seule étape qui a besoin d'internet
+        save(prepare_player_photos(pd.read_csv(OUT / "atp_matches.csv")), "player_photos")
+    except OSError as e:
+        print(f"player_photos : pas d'accès à internet ({e}), photos non mises à jour")
