@@ -19,7 +19,7 @@ Télécharger les deux dépôts (bouton « Code » puis « Download ZIP » sur G
 
 | Dossier attendu dans `data/raw/` | Source |
 | --- | --- |
-| `tennis-sackmann-archive/` | [github.com/Aneeshers/tennis-sackmann-archive](https://github.com/Aneeshers/tennis-sackmann-archive) (copie de l'ancien dépôt `JeffSackmann/tennis_atp`, retiré en 2026) |
+| `tennis-sackmann-archive/` | [github.com/Aneeshers/tennis-sackmann-archive](https://github.com/Aneeshers/tennis-sackmann-archive) (copie de l'ancien dépôt `JeffSackmann/tennis_atp`, retiré en 2026, avec les sous-dossiers `atp/` et `slam_pointbypoint/`) |
 | `tennis_MatchChartingProject/` | [github.com/JeffSackmann/tennis_MatchChartingProject](https://github.com/JeffSackmann/tennis_MatchChartingProject) |
 
 ## 2. Préparer les données
@@ -29,11 +29,33 @@ pip install -r requirements.txt
 python prepare_data.py
 ```
 
-Le script écrit dans `web/data/` :
+Le script vide `web/data/` puis y écrit tous les fichiers ci-dessous. On garde le maximum de détail : les vues font leurs propres regroupements.
 
-- `atp_matches.csv` : un match ATP du circuit principal par ligne, de 1991 à mai 2026 (pas de statistiques avant 1991). Tournoi, surface, tour, les deux joueurs (classement, âge, taille, main, pays) et leurs statistiques de service (préfixe `w_` pour le vainqueur, `l_` pour le perdant). Forfaits, disqualifications, matchs interrompus, matchs sans statistiques et lignes aux statistiques incohérentes retirés. La surface `Carpet` (moquette, disparue du circuit après 2009) est gardée.
-- `charting_matches.csv` : un joueur par match noté du Match Charting Project (hommes, dur / terre / gazon), soit deux lignes par match, avec `won` = 1 pour le vainqueur et 0 pour le perdant. Le vainqueur est déduit du dernier point ; les matchs notés en partie ou abandonnés sont retirés. Totaux bruts : service, retour, balles de break, coups gagnants, fautes directes, filet, coups droits / revers / slices, profondeur des retours.
-- `charting_players.csv` : indicateurs de style par joueur et par surface (`Hard`, `Clay`, `Grass`, `All`), tirés du Match Charting Project (hommes, au moins 10 matchs notés). Ce sont des proportions : points gagnés au service et au retour, aces, doubles fautes, retours profonds, coups gagnants et fautes directes par point, montées au filet, part de coups droits, part de slices. Les colonnes `matches` et `points` donnent l'effectif.
+### Règles communes
+
+1. **Simple messieurs** seulement.
+2. **Matchs joués jusqu'au bout** : forfaits, disqualifications, abandons et matchs interrompus ou notés en partie sont retirés. Les statistiques d'un match incomplet ne sont pas comparables.
+3. **Vainqueur / perdant** partout : les noms de colonnes commencent par `w_` (vainqueur) ou `l_` (perdant) ; dans les tableaux à une ligne par joueur, la colonne `player` vaut `w` ou `l` ; dans les points, `server` et `point_winner` valent `w` ou `l`.
+4. **Identifiant entier** `match_id` propre à chaque source : il relie les points et les stats au fichier de matchs de la même source (`charting_*` → `charting_matches`, `slam_points` → `slam_matches`).
+5. **Comptes bruts**, pas de pourcentages : on additionne puis on divise, ce qui reste juste quand on regroupe.
+6. Noms de colonnes en `snake_case`, dates `AAAA-MM-JJ`, surfaces `Hard`, `Clay`, `Grass` (et `Carpet` dans l'archive ATP, surface disparue après 2009).
+
+### Fichiers
+
+| Fichier | Une ligne = | Contenu |
+| --- | --- | --- |
+| `atp_matches.csv` | un match ATP du circuit principal, 1991 – mai 2026 | tournoi, niveau, surface, tour, score, durée ; pour chaque joueur : id, nom, classement, points, tête de série, entrée, âge, taille, main, pays et stats de service (aces, doubles fautes, points, 1res balles, points gagnés, jeux, balles de break) |
+| `charting_matches.csv` | un match noté par le Match Charting Project | date, tournoi, tour, surface, court, arbitre, noms et mains, `first_server` |
+| `charting_points.csv.gz` | un point noté | score avant le point, serveur, codes bruts de la 1re et de la 2e balle (`first`, `second`, voir l'onglet *Instructions* de `MatchChart 0.3.2.xlsm`), gagnant du point |
+| `charting_<tableau>.csv` | un match × joueur × ligne du tableau | les 16 tableaux de stats du projet, complets : `overview` (la colonne `row` donne le set ou `Total`), `serve_basics`, `serve_direction`, `serve_influence`, `sv_break_total`, `sv_break_split`, `key_points_serve`, `key_points_return`, `return_outcomes`, `return_depth`, `rally`, `shot_types`, `shot_direction`, `shot_dir_outcomes`, `net_points`, `sn_v` |
+| `slam_matches.csv` | un match de Grand Chelem suivi point par point, 2011-2024 | tournoi, surface, tour, court, noms et pays |
+| `slam_points.csv.gz` | un point | set, jeu, score, serveur, 1re ou 2e balle, vitesse (km/h), longueur d'échange, zone et profondeur du service, profondeur du retour, type du coup gagnant, et pour chaque joueur : ace, double faute, coup gagnant, faute directe ou provoquée, montée au filet, balle de break, distance parcourue |
+
+`charting_rally.csv` a une ligne par match, longueur d'échange (`row`) et serveur (`server` = `w`, `l` ou `all`), avec les stats des deux joueurs en colonnes `w_` et `l_`.
+
+Les champs des Grands Chelems ne sont pas tous renseignés chaque année (vitesse 75 % des points, zone du service 42 %, distance parcourue 47 %) : une case vide veut dire « non mesuré ».
+
+Les deux fichiers point par point sont compressés (`.csv.gz`, environ 14 Mo chacun au lieu de 55 et 85). Le navigateur les lit avec `csvGz()` de `web/main.js`.
 
 ## 3. Lancer le site
 
