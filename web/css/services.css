@@ -1,9 +1,11 @@
 #sv-player {
-  padding: 6px 10px;
+  padding: 7px 10px;
   border: 1px solid var(--line);
-  border-radius: 6px;
-  background: white;
+  border-radius: 8px;
+  background: var(--input);
+  color: var(--text);
   font: inherit;
+  font-size: 14px;
 }
 
 #sv-courts svg { display: block; width: 100%; height: auto; margin-top: 16px; }
