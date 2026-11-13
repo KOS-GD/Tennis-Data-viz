@@ -5,6 +5,7 @@ function createViz() {
   initTabs();
   initSummary();
   initServices();   // js/services.js
+  initFiche();      // js/fiche.js
 }
 
 // Onglets : un bouton par section, on affiche celle qui est choisie.
