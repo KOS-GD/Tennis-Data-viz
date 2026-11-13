@@ -3,6 +3,8 @@
 Chaque fonction prend un DataFrame produit par src/load.py et renvoie un
 DataFrame avec une ligne par joueur (ou par paire de joueurs).
 """
+from __future__ import annotations
+
 import pandas as pd
 
 STAT_COLS = ["ace", "df", "svpt", "1stIn", "1stWon", "2ndWon", "SvGms", "bpSaved", "bpFaced"]

@@ -3,6 +3,8 @@
 Toutes les fonctions lisent data/raw/tennis_atp/ par défaut ; lancez
 `bash scripts/download_data.sh` avant la première utilisation.
 """
+from __future__ import annotations
+
 from pathlib import Path
 
 import pandas as pd

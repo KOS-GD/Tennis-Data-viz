@@ -9,6 +9,8 @@ Méthode (à documenter dans le rapport) :
 - les Grands Chelems peuvent recevoir un K majoré (`slam_boost`) ;
 - version par surface : on recalcule l'Elo en ne gardant que les matchs de la surface.
 """
+from __future__ import annotations
+
 import pandas as pd
 
 from .indicators import played

@@ -6,6 +6,8 @@ Usage, depuis la racine du dépôt :
 Le format de web/data/goat.json est le contrat entre l'équipe données et l'équipe
 site : si vous le changez, mettez à jour web/data/goat_sample.json et web/js/.
 """
+from __future__ import annotations
+
 import json
 from pathlib import Path
 
