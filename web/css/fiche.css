@@ -68,12 +68,7 @@
 #view-fiche .mark .symbol { stroke-width: 2; }
 #view-fiche .mark:hover .symbol { stroke: var(--text); }
 #view-fiche .ci-line, #view-fiche .cap { stroke-width: 2; stroke-linecap: round; }
- 
-/* Tableau des valeurs exactes */
-#view-fiche #fj-table { margin-top: 16px; font-size: 13px; }
-#view-fiche #fj-table th { font-weight: 600; vertical-align: bottom; }
-#view-fiche #fj-table td small { display: block; color: var(--muted); font-size: 11px; }
-#view-fiche #fj-table td.faint { color: var(--muted); }
+
  
 #view-fiche .tooltip {
   position: fixed; z-index: 10; pointer-events: none;

@@ -359,25 +359,8 @@
         .attr("d", d => d3.symbol(ctx.SYMBOLS[d.slot], 70)())
         .attr("stroke", color)
         .attr("fill", d => ctx.players.get(d.id).val[d.axis.key].low ? "var(--panel)" : color(d));
-     
-      updateTable(sel);
     }
      
-    // Tableau des valeurs exactes, avec intervalle et effectif.
-    function updateTable(sel) {
-      const table = d3.select("#fj-table");
-      table.select("thead tr").selectAll("th").data(["Critère", ...sel]).join("th")
-        .html(d => typeof d === "string" ? d
-          : `<span style="color:${color(d)}">${ctx.SYMBOL_CHARS[d.slot]}</span> ${d.p.name}`);
-      table.select("tbody").selectAll("tr").data(ctx.AXES).join("tr")
-        .selectAll("td").data(a => [a, ...sel.map(s => ({ a, o: s.p.val[a.key] }))]).join("td")
-        .attr("class", d => (d.a ? (d.o && !d.o.low ? "num" : "num faint") : null))
-        .html(d => {
-          if (!d.a) return d.title;
-          if (!d.o) return "n.d.";
-          return `${pct(d.o.v)}<small>${pct(d.o.ci[0])} – ${pct(d.o.ci[1])} · ${fmtInt(d.o.n)} ${d.a.unit}</small>`;
-        });
-    }
      
     // ---------------------------------------------------------------------------
     // Bascule radar ↔ barres alignées, en trois étapes :
