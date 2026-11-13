@@ -17,36 +17,13 @@
       <h2>Les données chargées</h2>
       <div id="summary-content">Chargement…</div>
     </section>
-
-    <section id="serve">
-      <h2>Où servent-ils ? Un mini-court par joueur</h2>
-      <p class="note">Chaque mini-court montre la moitié adverse vue depuis le serveur, filet en bas. À gauche le carré côté égalité, à droite le carré côté avantage, chacun découpé en trois zones : extérieur, corps, centre (T). La couleur donne la part des services du carré envoyée dans chaque zone (1<sup>re</sup> et 2<sup>e</sup> balles ensemble) : chaque carré fait 100 %. Joueurs rangés par époque, même échelle de couleur pour tous.</p>
-      <div class="controls"><span class="lbl">Surface</span><div class="seg" id="serve-surface"></div></div>
-      <div class="legend" id="serve-legend"></div>
-      <div class="multiples" id="serve-grid"></div>
-      <p class="note">Hachuré : moins de 20 matchs notés sur la surface, valeurs à prendre avec prudence. G = gaucher : son service extérieur côté avantage part dans le revers d'un droitier.</p>
-      <details><summary>Voir les valeurs en tableau</summary><div id="serve-table"></div></details>
-    </section>
-
-    <section id="net">
-      <h2>La disparition du jeu au filet</h2>
-      <p class="note">Un point = un joueur dans un match noté, placé selon la part des points qu'il a joués au filet. Le violon montre la forme de la distribution, la boîte la médiane et les quartiles. Les joueurs choisis ressortent en couleur.</p>
-      <div class="controls"><span class="lbl">Surface</span><div class="seg" id="net-surface"></div></div>
-      <div class="controls" id="net-players"><span class="lbl">Joueurs (3 au plus)</span></div>
-      <div id="net-chart"></div>
-      <p class="note">Violon tracé seulement à partir de 30 matchs dans la décennie pour la surface choisie ; chaque violon a la même largeur maximale (on compare des formes, l'effectif n est écrit dessous). Matchs de moins de 40 points écartés. Les années 2020 s'arrêtent en mai 2026.</p>
-      <details><summary>Voir les valeurs en tableau</summary><div id="net-table"></div></details>
-    </section>
   </main>
 
   <footer>
-    Données : Jeff Sackmann / Tennis Abstract (archive ATP et Match Charting Project), licence CC BY-NC-SA 4.0. Le Match Charting Project est noté par des bénévoles : l'échantillon penche vers les grands matchs et les joueurs connus.
+    Données : Jeff Sackmann / Tennis Abstract (archive ATP et Match Charting Project), licence CC BY-NC-SA 4.0.
   </footer>
 
   <script src="d3.v7.min.js"></script>
   <script src="main.js"></script>
-  <script src="common.js"></script>
-  <script src="serve.js"></script>
-  <script src="net.js"></script>
 </body>
 </html>
